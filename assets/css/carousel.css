@@ -1,0 +1,26 @@
+.carousel-inner img {
+    width: 100%; /* Hace que las imágenes ocupen todo el ancho del contenedor */
+    object-fit: cover; /* Asegura que las imágenes se ajusten sin distorsión */
+    height: 500px; /* Altura por defecto para pantallas grandes */
+}
+
+/* Ajustes para dispositivos pequeños (por ejemplo, móviles) */
+@media (max-width: 576px) {
+    .carousel-inner img {
+        height: 300px; /* Menor altura en pantallas pequeñas */
+    }
+}
+
+/* Ajustes para pantallas de tamaño mediano (por ejemplo, tabletas) */
+@media (min-width: 576px) and (max-width: 768px) {
+    .carousel-inner img {
+        height: 350px; /* Altura intermedia para tabletas */
+    }
+}
+
+/* Ajustes para pantallas más grandes (por ejemplo, computadoras de escritorio) */
+@media (min-width: 768px) {
+    .carousel-inner img {
+        height: 500px; /* Altura por defecto para pantallas grandes */
+    }
+}
