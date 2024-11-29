@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
             { 
                 name: 'PerNit', 
                 required: true, 
-                regex: /^[0-9]{9}$/, 
+                regex: /^[a-zA-Z0-90-9]{9}$/, 
                 errorMsg: 'Ingrese un NIT válido de 9 dígitos.' 
             },
             { 

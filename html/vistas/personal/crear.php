@@ -31,19 +31,19 @@
         <!-- DPI -->
         <div class="mb-3">
             <label for="PerDpi" class="form-label">DPI</label>
-            <input type="text" class="form-control"  name="PerDpi" pattern="[0-9]{13}" maxlength="13" value="<?php echo($regresa->getPer_dpi()); ?>" required>
+            <input type="text" class="form-control"  name="PerDpi" pattern="[0-9]{13}" maxlength="13" value="<?php echo($regresa->getPer_dpi()); ?>" >
             <div class="invalid-feedback">Ingrese un DPI válido de 13 dígitos.</div>
         </div>
         <!-- NIT -->
         <div class="mb-3">
-            <label for="PerNit" required class="form-label">NIT</label>
-            <input type="text" class="form-control"  name="PerNit" maxlength="9" value="<?php echo($regresa->getPer_nit()); ?>" required>
+            <label for="PerNit"  class="form-label">NIT</label>
+            <input type="text" class="form-control"  name="PerNit" maxlength="9" value="<?php echo($regresa->getPer_nit()); ?>" >
             <div class="invalid-feedback">Ingrese un NIT válido de 9 caracteres.</div>
         </div>
         <!-- Teléfono Principal -->
         <div class="mb-3">
-            <label for="PerTel1" required  class="form-label">Teléfono Principal</label>
-            <input type="tel" class="form-control"  name="PerTel1" pattern="[0-9]{8}" maxlength="8" value="<?php echo($regresa->getPer_tel1()); ?>" required>
+            <label for="PerTel1"   class="form-label">Teléfono Principal</label>
+            <input type="tel" class="form-control"  name="PerTel1" pattern="[0-9]{8}" maxlength="8" value="<?php echo($regresa->getPer_tel1()); ?>" >
             <div class="invalid-feedback">Ingrese un teléfono de 8 dígitos.</div>
         </div>
         <!-- Teléfono Secundario -->
@@ -74,7 +74,7 @@
         <!-- Estado -->
         <div class="mb-3">
             <label for="PerSituacion" class="form-label">Estado</label>
-            <select class="form-select" name="PerSituacion" required>
+            <select class="form-select" name="PerSituacion" >
                 <option name="PerSituacion" value="0" <?= $regresa->getPer_situacion() == 0 ? 'selected' : '' ?>>Inactivo</option>
                 <option name="PerSituacion" value="2" <?= $regresa->getPer_situacion() == 2 ? 'selected' : '' ?>>Administrador</option>
                 <option name="PerSituacion" value="4" <?= $regresa->getPer_situacion() == 4 ? 'selected' : '' ?>>Vendedor</option>
@@ -112,32 +112,32 @@
         </div>
     <!-- Nombres -->
         <div class="mb-3">
-            <label for="PerNombres" required class="form-label">Nombres</label>
+            <label for="PerNombres"  class="form-label">Nombres</label>
             <input type="text" class="form-control"  name="PerNombres" maxlength="100"  required>
             <div class="invalid-feedback">Por favor ingrese los nombres.</div>
         </div>
         <!-- Apellidos -->
         <div class="mb-3">
-            <label for="PerApellidos" required  class="form-label">Apellidos</label>
+            <label for="PerApellidos"   class="form-label">Apellidos</label>
             <input type="text" class="form-control"  name="PerApellidos" maxlength="100"  required>
             <div class="invalid-feedback">Por favor ingrese los apellidos.</div>
         </div>
         <!-- DPI -->
         <div class="mb-3">
             <label for="PerDpi" class="form-label">DPI</label>
-            <input type="text" class="form-control"  name="PerDpi" pattern="[0-9]{13}" maxlength="13"  required>
+            <input type="text" class="form-control"  name="PerDpi" pattern="[0-9]{13}" maxlength="13"  >
             <div class="invalid-feedback">Ingrese un DPI válido de 13 dígitos.</div>
         </div>
         <!-- NIT -->
         <div class="mb-3">
-            <label for="PerNit" required class="form-label">NIT</label>
-            <input type="text" class="form-control"  name="PerNit" maxlength="9"  required>
+            <label for="PerNit"  class="form-label">NIT</label>
+            <input type="text" class="form-control"  name="PerNit" maxlength="9"  requird>
             <div class="invalid-feedback">Ingrese un NIT válido de 9 caracteres.</div>
         </div>
         <!-- Teléfono Principal -->
         <div class="mb-3">
-            <label for="PerTel1" required  class="form-label">Teléfono Principal</label>
-            <input type="tel" class="form-control"  name="PerTel1" pattern="[0-9]{8}" maxlength="8" required>
+            <label for="PerTel1"   class="form-label">Teléfono Principal</label>
+            <input type="tel" class="form-control"  name="PerTel1" pattern="[0-9]{8}" maxlength="8" >
             <div class="invalid-feedback">Ingrese un teléfono de 8 dígitos.</div>
         </div>
         <!-- Teléfono Secundario -->

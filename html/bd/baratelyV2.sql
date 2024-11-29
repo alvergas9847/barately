@@ -30,7 +30,8 @@ CREATE INDEX idx_personal_nombre ON personal(per_nombres, per_apellidos);
 CREATE TABLE IF NOT EXISTS roles (
     rol_id INT AUTO_INCREMENT PRIMARY KEY,      -- ID único del rol
     rol_nombre VARCHAR(50) NOT NULL UNIQUE,     -- Nombre del rol
-    rol_descripcion VARCHAR(255)                -- Descripción opcional del rol
+    rol_descripcion VARCHAR(255),                -- Descripción opcional del rol
+    rol_situacion INT NOT NULL DEFAULT 3
 );
 
 -- tabla de usuarios

@@ -3,6 +3,12 @@ FROM php:8.4.1-apache
 # Instalar extensiones necesarias para el proyecto
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
+# Actualiza los repositorios y instala las dependencias necesarias para GD
+RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev
+
+# Configura y habilita la extensión GD en PHP
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install gd
+
 # Copiar archivos de tu proyecto al directorio de Apache
 COPY . /var/www/html
 
