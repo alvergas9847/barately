@@ -6,18 +6,16 @@
 <br>
 <div class="position-relative">
   <div class="position-absolute top-0 start-50 translate-middle">
-    <a  href='?c=personal&a=FormCrear&Percodigo=<?php echo $rol_id; ?>'>	<button type="button" class="btn btn-outline-primary">Agregar</button> </a>
+    <a  href="?c=roles&a=CrearRoles">	<button type="button" class="btn btn-outline-primary">Agregar</button> </a>
 </div>
 </div>
 
 <table id="example" class="display dataTable"  aria-describedby="example_info">
 <colgroup>
-    <col data-dt-column="0">
-    <col data-dt-column="1">
-    <col data-dt-column="2">
-    <col data-dt-column="3">
-    
-   
+    <col data-dt-column="0"></col>
+    <col data-dt-column="1"></col>
+    <col data-dt-column="2"></col>
+    <col data-dt-column="3"></col>
 </colgroup>
 <thead>
     <tr>
@@ -58,8 +56,8 @@
         <input type="hidden" value="<?php $rol_situacion?>"></input>
 
         <td class="dt-type-numeric">
-        <a  href='?c=personal&a=FormCrear&Percodigo=<?php echo $rol_id; ?>'>	<button type="button" class="btn btn-warning" > Editar </button> </a>
-        <a  href='?c=personal&a=EliminarPersonal&Percodigo=<?php echo $rol_id; ?>'>	<button type="button" class="btn btn-danger">Eliminar</button></td> </a>
+        <a  href='?c=roles&a=CrearRoles&RolId=<?php echo $rol_id; ?>'>	<button type="button" class="btn btn-warning" > Editar </button> </a>
+        <a  href='?c=roles&a=EliminarRoles&RolId=<?php echo $rol_id; ?>'>	<button type="button" class="btn btn-danger">Eliminar</button></td> </a>
     </tr>
     <?php $no =$no+1; ?>
     <?php endforeach; ?>
@@ -71,7 +69,7 @@
         </th>
         
         <th data-dt-column="1" rowspan="1" colspan="1" class="dt-orderable-asc dt-orderable-desc" aria-label="Office: Activate to sort" tabindex="0">
-            <span class="dt-column-title" role="button">Nombre</span>
+                <span class="dt-column-title" role="button">Nombre</span>
         </th>
         <th data-dt-column="2" rowspan="1" colspan="1" class="dt-type-date dt-orderable-asc dt-orderable-desc" aria-label="Start date: Activate to sort" tabindex="0">
             <span class="dt-column-title" role="button">Descripcion</span>

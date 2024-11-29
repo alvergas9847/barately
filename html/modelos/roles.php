@@ -48,12 +48,12 @@ class Roles{
     
       //metodos de obtension situacion roles
    public function getRol_situacion() : ?int{
-    return $this->Rol_situacion;
+    return $this->rol_situacion;
     }
 
     //metodos de asignacion situacion roles
     public function setRol_situacion(int $RolSit){
-        $this->Rol_situacion=$RolSit;
+        $this->rol_situacion=$RolSit;
     }
 
 
@@ -84,6 +84,141 @@ class Roles{
     
 /////////////////////////////////
 ////=====================[ paso No2  ] ============================================
-////////////////////////
+//////////////////////// creamos la funcion obtener para obtener el ID
+    ///=============================================
+    //====================[OBTENER]================   
+    //
+    
+    public function Obtener($RolId) {
+        try {
+            // Preparamos la consulta con un parámetro vinculado
+            $consulta = $this->pdo->prepare("SELECT * FROM roles WHERE rol_id = :rolid");
+    
+            // Vinculamos el parámetro a la consulta
+            $consulta->bindParam(':rolid', $RolId, PDO::PARAM_INT);
+    
+            // Ejecutamos la consulta
+            $consulta->execute();
+    
+            // Obtenemos el resultado
+            $respuesta = $consulta->fetch(PDO::FETCH_OBJ);
+    
+            // Verificamos si se encontró el registro
+            if ($respuesta) {
+                // Creamos una instancia de la clase Personal
+                $regresa = new Roles();
+                
+                // Asignamos los valores del resultado a la instancia
+                $regresa->setRol_id($respuesta->rol_id); 
+                $regresa->setRol_nombre($respuesta->rol_nombre); 
+                $regresa->setRol_descripcion($respuesta->rol_descripcion); 
+                $regresa->setRol_situacion($respuesta->rol_situacion);
+    
+                // Devolvemos la instancia con los datos
+                return $regresa;
+            } else {
+                // Si no se encontró el registro, retornamos null o false
+                return null;
+            }
+    
+        } catch (Exception $e) {
+            // Si ocurre un error, lo gestionamos
+            die($e->getMessage());
+        }
+    }
+    
+/////////////////////////////////
+////=====================[ paso No 3  ] ============================================
+//////////////////////// creamos la funcion obtener para obtener el ID
+public function Insertar(Roles $respuesta) {
+    try {
+        // Consulta SQL
+        $consulta = "INSERT INTO roles (rol_nombre, rol_descripcion)
+                     VALUES (?, ?);";
+
+        // Ejecución de la consulta
+        $this->pdo->prepare($consulta)->execute(array(
+        $respuesta->getRol_nombre(),
+        $respuesta->getRol_descripcion(),
+     
+        ));
+  
+        } catch (Exception $e) {
+        // Captura y muestra el error
+        die("Error en la base de datos: " . $e->getMessage()." COMUNICARSE CON LA ADMINISTRACION" );
+        }
+        return $respuesta;  // Devolver el objeto con los errores (si los hay)
+    }
+
+
+ ///=============================================
+    //====================[ACTUALIZAR]================
+        
+    public function Actualizar(Roles $respuesta) {
+        try {
+            // Consulta SQL corregida
+            $consulta = "UPDATE roles SET 
+                rol_nombre = COALESCE(?, rol_nombre), 
+                rol_descripcion = COALESCE(?, rol_descripcion),
+                rol_situacion = COALESCE(?, rol_situacion)
+                WHERE rol_id = ?";
+    
+            // Array de los valores que se insertarán en la consulta
+            $valores = array(
+                $respuesta->getRol_nombre(), 
+                $respuesta->getRol_descripcion(),
+                $respuesta->getRol_situacion(),
+                $respuesta->getRol_id()
+            );
+    
+        // **Imprimir el array de valores**
+        //echo "<pre>Array de valores a insertar:\n";
+        //print_r($valores);
+        //echo "</pre>";
+        //exit; // Detener ejecución para ver los valores
+           // Preparación de la consulta con los parámetros proporcionados
+           $stmt = $this->pdo->prepare($consulta);
+           $stmt->execute($valores);
+   
+       } catch (Exception $e) {
+           // Captura y muestra el error si ocurre un problema durante la ejecución
+           die("Error en la base de datos: " . $e->getMessage()." COMUNICARSE CON EL DBA DE BARATELY");
+       }
+   
+       return $respuesta;  // Devolver el objeto con los posibles errores (si los hay)
+   }
+    
+   ///=============================================
+    //====================[ELIMINAR]================
+    
+    public function Eliminar(Roles $respuesta) {
+        try {
+            // Consulta SQL
+            $consulta = "UPDATE roles SET rol_situacion = 0 WHERE rol_id = :codigo";
+    
+            // Preparar la consulta
+            $stmt = $this->pdo->prepare($consulta);
+    
+            // Ejecutar la consulta con el valor de per_codigo
+            $stmt->execute(array(
+                ':codigo' => $respuesta->getRol_id()  // Solo necesitas pasar per_codigo
+            ));
+    
+            // Imprimir la consulta con los valores
+           // echo '<pre>';
+           // echo "Consulta: " . $consulta . "\n";
+           // echo "Valor de :codigo = " . $respuesta->getPer_codigo();
+           // echo '</pre>';
+           // exit;  // Detener el script después de mostrar la consulta
+    
+        } catch (Exception $e) {
+            // Captura y muestra el error
+            die("Error en la base de datos: " . $e->getMessage() . " COMUNICARSE CON LA ADMINISTRACION");
+        }
+    
+        return $respuesta;  // Devolver el objeto con los posibles errores (si los hay)
+    }
+    
+    
 
 }
