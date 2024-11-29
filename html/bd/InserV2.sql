@@ -288,17 +288,25 @@ INSERT INTO cobro_servicio (per_codigo, tipo_servicio_id, monto, fecha_cobro, fe
 -----****
 
 
- /barately
-    /app
-        /controllers
-        /models
-        /views
-    /public
-        /css
-        /js
-        /images
-    /core
-    /config
-    /sql
-    .htaccess
-    index.php
+barately/
+├── Dockerfile
+├── README.md
+├── docker-compose.yaml
+└── html/
+    ├── assets/
+    ├── bd/
+    ├── controladores/
+    ├── index.php
+    ├── modelos/
+    └── vistas/
+
+Dockerfile: Archivo utilizado para construir tu imagen de Docker con PHP y Apache.
+README.md: Información o documentación del proyecto.
+docker-compose.yaml: Archivo para definir y ejecutar servicios de Docker.
+html/: Directorio que contiene los archivos y subcarpetas principales de tu aplicación web.
+assets/: Para archivos estáticos como CSS, JS, imágenes, etc.
+bd/: Probablemente para scripts SQL o archivos relacionados con la base de datos.
+controladores/: Para los controladores en el patrón MVC.
+index.php: Archivo de entrada para tu aplicación web.
+modelos/: Para las clases del modelo en MVC (gestión de datos).
+vistas/: Para las vistas de la interfaz de usuario en MVC.

@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  php_server:
+    build:
+      context: .
+    container_name: php_server
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/var/www/html
+    networks:
+      - barately_default
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql_container
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: barately
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - barately_default
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_container
+    environment:
+      PMA_HOST: mysql_container
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    networks:
+      - barately_default
+
+networks:
+  barately_default:
+    driver: bridge
+
+volumes:
+  mysql_data:

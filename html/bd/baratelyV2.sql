@@ -315,6 +315,19 @@ CREATE TABLE cobro_servicio (
 
 
 --=================================[ F I N ]==========================================--------
+-- tabla de auditoria de persoanl
+CREATE TABLE IF NOT EXISTS auditoria_personal (
+    aud_codigo INT AUTO_INCREMENT PRIMARY KEY,
+    per_codigo INT,
+    usuario_modifico INT,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    campo_modificado VARCHAR(255),
+    valor_anterior TEXT,
+    valor_nuevo TEXT,
+    FOREIGN KEY (per_codigo) REFERENCES personal(per_codigo),
+    FOREIGN KEY (usuario_modifico) REFERENCES usuario(usu_codigo)
+);
+
 -- Trigger para actualizar el inventario cuando se realiza una venta
 DELIMITER $$
 

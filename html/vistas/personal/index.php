@@ -72,8 +72,8 @@
                     <td><?php echo($per_apellidos)?></td>
                     <td><?php echo($per_tel1)?></td>
 					<td><?php echo($per_tel2)?></td>
-                    <input type="hidden" value="<?php$per_codigo?>"></input>
-                    <input type="hidden" value="<?php$per_nit?>"></input>
+                    <input type="hidden" value="<?php $per_codigo?>"></input>
+                    <input type="hidden" value="<?php $per_nit?>"></input>
                     <input type="hidden" value="<?php $per_mail?>"> </input>
                     <input type="hidden" value="<?php $per_direccion?>"> </input>
                     <td class="dt-type-date"><?php echo($per_dpi)?></td>
