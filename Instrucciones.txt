@@ -1,0 +1,105 @@
+hacer CRUD de: 
+
+			PERSONAL
+				-buscar
+				-editar
+				-eliminar
+
+			USUARIOS
+			   	-
+			   	-
+
+			  ROLES
+			   	-
+			   	-
+
+			  PROVEEDORES
+				-
+				-
+				-
+
+			  PLANILLAS
+			   	-
+			   	-
+			   	-
+
+			  PRODUCTOS
+			  	-
+			  	-
+			  	-
+			  	-
+			  	-
+			  	-
+			  	-
+
+			  INFORMES
+			    -
+			    -
+			    -
+			    -
+
+
+			  LOGIN
+
+
+ descargarmos e instalamos
+
+descargar https://git-scm.com/downloads 
+
+
+somandos para actualizar libreria de git hub
+1ro. me ubico en mi archivo local y clic derecho y abro bash
+2. escribo:	  	git add .
+3ro. escribo:	git commit -m "subir este archivo" 
+4to. escribo:	git push
+
+
+ 
+ 
+docker run -d --name mysql-container -e MYSQL_ROOT_PASSWORD=12345 -v mysql-data:/var/lib/mysql mysql:latest
+
+docker run -d --name phpmyadmin-container --link mysql-container:db -p 8081:80 phpmyadmin:latest
+ 
+
+instalamos: docker pull mysql
+ 			 docker pull php
+ 			 docker pull phpmyadmin
+ docker network create my_network			 			 
+
+
+docker-compose up --build -d
+
+================================================================
+
+el scrip no funciona de personal
+unix
+usuario gilberto
+pass 9847
+ 
+
+PC@BLUE47 MINGW64 ~/OneDrive/Documentos/repositorios/barately/html (main)
+$ docker ps -a
+CONTAINER ID   IMAGE               COMMAND                  CREATED             STATUS             PORTS                  NAMES
+8a80c986a396   phpmyadmin:latest   "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:8081->80/tcp   phpmyadmin-container
+2921ac910382   mysql:latest        "docker-entrypoint.s…"   About an hour ago   Up About an hour   3306/tcp, 33060/tcp    mysql-container
+e4d20d266c38   barately-php        "docker-php-entrypoi…"   2 hours ago         Up 2 hours         0.0.0.0:8080->80/tcp   php_server
+
+PC@BLUE47 MINGW64 ~/OneDrive/Documentos/repositorios/barately/html (main)
+$ docker stop mysql-container
+mysql-container
+
+PC@BLUE47 MINGW64 ~/OneDrive/Documentos/repositorios/barately/html (main)
+$ docker stop phpmyadmin-container
+phpmyadmin-container
+
+PC@BLUE47 MINGW64 ~/OneDrive/Documentos/repositorios/barately/html (main)
+$ docker stop php_server
+php_server
+
+PC@BLUE47 MINGW64 ~/OneDrive/Documentos/repositorios/barately/html (main)
+$ docker-compose down
+[+] Running 1/1
+ ✔ Network barately_default  Removed                                                                                                                           0.2s
+
+PC@BLUE47 MINGW64 ~/OneDrive/Documentos/repositorios/barately/html (main)
+$ docker-compose up -d
