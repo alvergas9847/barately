@@ -64,10 +64,16 @@ docker run -d --name phpmyadmin-container --link mysql-container:db -p 8081:80 p
 instalamos: docker pull mysql
  			 docker pull php
  			 docker pull phpmyadmin
+
+		 
  docker network create my_network			 			 
 
 
 docker-compose up --build -d
+
+docker exec -it php_server sh
+apt-get update && apt-get install -y bash
+
 
 ================================================================
 

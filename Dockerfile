@@ -9,6 +9,9 @@ RUN apt-get update && apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev
 # Configura y habilita la extensión GD en PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg && docker-php-ext-install gd
 
+# Aumentar el límite de memoria de PHP a 512M
+RUN echo "memory_limit = 512M" > /usr/local/etc/php/conf.d/memory-limit.ini
+
 # Copiar archivos de tu proyecto al directorio de Apache
 COPY . /var/www/html
 

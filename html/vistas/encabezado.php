@@ -45,7 +45,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Usuario </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                   <li><a class="dropdown-item" href="?c=roles"> Roles </a></li>
-                  <li><a class="dropdown-item" href="#">x x x </a></li>
+                  <li><a class="dropdown-item" href="?c=usuario">Buscar </a></li>
                   <li><a class="dropdown-item" href="#">x x x </a></li>
                 </ul>
               </li>                 

@@ -37,13 +37,15 @@ CREATE TABLE IF NOT EXISTS roles (
 -- tabla de usuarios
 CREATE TABLE IF NOT EXISTS usuario (
     usu_codigo INT AUTO_INCREMENT PRIMARY KEY,         -- Código único del usuario
-    per_codigo INT NOT NULL,                           -- Código del personal (FK) asociado al usuario
     usu_nombre VARCHAR(50) NOT NULL UNIQUE,            -- Nombre de usuario (debe ser único)
-    usu_contrasena VARCHAR(255) NOT NULL,              -- Contraseña (almacenada de manera segura)
+    usu_pass VARCHAR(255) NOT NULL,                     -- Contraseña (si el login es normal)
     rol_id INT NOT NULL,                               -- ID del rol (FK)
     usu_situacion INT NOT NULL DEFAULT 1,              -- Estado del registro (1 = Activo, 0 = Inactivo)
-    FOREIGN KEY (per_codigo) REFERENCES personal(per_codigo) ON DELETE CASCADE, -- Relación con personal
-    FOREIGN KEY (rol_id) REFERENCES roles(rol_id) ON DELETE CASCADE -- Relación con roles
+    proveedor VARCHAR(50) NULL,                         -- El nombre del proveedor de autenticación (Google, Facebook, etc.)
+    proveedor_id VARCHAR(255) NULL,                     -- El ID único del usuario proporcionado por el proveedor (debe ser único)
+    FOREIGN KEY (rol_id) REFERENCES roles(rol_id) ON DELETE CASCADE, -- Relación con roles
+    UNIQUE (proveedor, proveedor_id),                    -- Un índice único para evitar múltiples registros con el mismo proveedor e ID
+    UNIQUE (usu_nombre)                                -- Un índice único para el nombre de usuario tradicional
 );
 
 
@@ -378,7 +380,7 @@ DELIMITER ;
 
 -- Procedimiento para agregar un nuevo producto
 
--- 
+ 
 
 DELIMITER $$
 

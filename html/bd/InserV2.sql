@@ -20,13 +20,26 @@ INSERT INTO roles (rol_nombre, rol_descripcion) VALUES
 
 
 -- Insertar registros en la tabla `usuario`
-INSERT INTO usuario (per_codigo, usu_nombre, usu_contrasena, rol_id, usu_situacion) VALUES
-(1, 'admin', SHA2('admin123', 256), 1, 1), -- Administrador con contraseña segura
-(2, 'usuario1', SHA2('user123', 256), 2, 1), -- Usuario estándar activo
-(3, 'cliente1', SHA2('client123', 256), 3, 1), -- Cliente activo
-(4, 'vendedor1', SHA2('sell123', 256), 4, 1), -- Vendedor activo
-(5, 'contador1', SHA2('account123', 256), 5, 1), -- Contador activo
-(6, 'prove123', SHA2('prove123', 256), 6, 1); -- Proveedor con contraseña segura
+-- Usuario 1: Administrador
+INSERT INTO usuario (usu_nombre, usu_pass, rol_id, usu_situacion) 
+VALUES ('admin', 'admin123', 1, 1);
+
+-- Usuario 2: Usuario
+INSERT INTO usuario (usu_nombre, usu_pass, rol_id, usu_situacion) 
+VALUES ('usuario1', 'usuario123', 2, 1);
+
+-- Usuario 3: Contador
+INSERT INTO usuario (usu_nombre, usu_pass, rol_id, usu_situacion) 
+VALUES ('contador1', 'cont123', 3, 1);
+
+-- Usuario 4: Proveedor
+INSERT INTO usuario (usu_nombre, usu_pass, rol_id, usu_situacion) 
+VALUES ('proveedor1', 'proveedor123', 4, 1);
+
+-- Usuario 5: Soporte
+INSERT INTO usuario (usu_nombre, usu_pass, rol_id, usu_situacion) 
+VALUES ('soporte1', 'soporte123', 5, 1);
+
 
 -- Tabla `usuario`:
 -- Esta tabla almacena la información de los usuarios que pueden iniciar sesión en el sistema.
