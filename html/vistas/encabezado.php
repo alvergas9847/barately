@@ -67,6 +67,10 @@
                   <li><a class="dropdown-item" href="#">x x x </a></li>
                 </ul>
               </li>
+              <!-- Finanzas --> 
+              <li class="nav-item ">
+                <a class="nav-link " href="?c=finanzas"  role="button"  aria-expanded="false">Finanzas </a>
+              </li>              
               <!-- Agregar más menús según sea necesario -->
             </ul>
           </div>

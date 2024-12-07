@@ -32,7 +32,7 @@
      <!-- situacion -->
         <div class="mb-3">
             <label for="RolSituacion" class="form-label">Estado</label>
-            <select class="form-select" name="RolSit" >
+            <select class="form-select" name="RolSit" disabled >
                 <option name="RolSit" value="0" <?= $regresa->getRol_situacion() == 0 ? 'selected' : '' ?>>Inactivo</option>
                 <option name="RolSit" value="1" <?= $regresa->getRol_situacion() == 1 ? 'selected' : '' ?>>Activo</option>
             </select>
@@ -69,17 +69,17 @@
             <div class="invalid-feedback">Por favor ingrese los nombres.</div>
         </div>
        
-        <!-- Dirección -->
+        <!-- Descripcion -->
         <div class="mb-3">
-            <label for="RolDesc" class="form-label">Dirección</label>
-            <textarea class="form-control"  name="RolDesc" maxlength="255" rows="3" "></textarea>
+            <label for="RolDesc" class="form-label">Descripcion</label>
+            <input type="text" class="form-control" name="RolDesc" maxlength="255"  > 
         </div>
         <!-- Estado -->
-        <div class="mb-3">
+        <div class="mb-3" readonly>
             <label for="RolSit" class="form-label">Estado</label>
-            <select class="form-select" name="RolSit" required>
-                <option name="RolSit" value="0" >Inactivo</option>
-                <option name="RolSit" value="1" selected>Activo</option>
+            <select class="form-select" name="RolSit"  disabled>
+                <option name="RolSit" value="0"   >Inactivo</option>
+                <option name="RolSit"  value="1"   selected >Activo</option>
             </select>
             <div class="invalid-feedback">Seleccione el estado del personal.</div>
 

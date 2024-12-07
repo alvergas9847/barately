@@ -43,19 +43,29 @@ class PersonalControlador{
   public function Guardar() {
     $respuestas = new Personal();
 
+    // Función auxiliar para validar y procesar campos
+    function procesarCampo($campo, $tipo = 'string') {
+        if (empty($campo)) {
+            return $tipo === 'int' ? 777 : null;
+        }
+        return $tipo === 'int' ? (int)$campo : $campo;
+    }
+
     // Asignar valores del formulario
     $respuestas->setPer_codigo(intval($_POST['PerCodigo']));
     $respuestas->setPer_nombres($_POST['PerNombres']);
-    $respuestas->setPer_apellidos($_POST['PerApellidos']);
-    $respuestas->setPer_dpi($_POST['PerDpi']);
-    $respuestas->setPer_nit($_POST['PerNit']);
-    $respuestas->setPer_tel1((int)($_POST['PerTel1']));
-    $respuestas->setPer_tel2((int)($_POST['PerTel2']));
-    $respuestas->setPer_mail($_POST['PerMail']);
-    $respuestas->setPer_direccion($_POST['PerDireccion']);
-    $respuestas->setPer_fecha_registro($_POST['FechaRegistro'] ?? date('Y-m-d'));
-    $respuestas->setPer_situacion((int)($_POST['PerSituacion']));
-
+    $respuestas->setPer_apellidos(procesarCampo($_POST['PerApellidos']));
+    $respuestas->setPer_dpi(procesarCampo($_POST['PerDpi'], 'int'));
+    $respuestas->setPer_nit(procesarCampo($_POST['PerNit']));
+    $respuestas->setPer_tel1(procesarCampo($_POST['PerTel1'], 'int'));
+    $respuestas->setPer_tel2(procesarCampo($_POST['PerTel2'], 'int'));
+    $respuestas->setPer_mail(procesarCampo($_POST['PerMail']));
+    $respuestas->setPer_direccion(procesarCampo($_POST['PerDireccion']));
+    $respuestas->setPer_fecha_registro(($_POST['FechaRegistro']) ?? date('Y-m-d'));
+    $respuestas->setPer_situacion(intval($_POST['PerSituacion'] ));
+    $respuestas->setPer_rol_id(intval($_POST['perRolid']));
+    
+ 
     // Verificar si se subió una imagen
     if (isset($_FILES['PerImagen']) && $_FILES['PerImagen']['error'] == 0) {
         // Cargar la imagen y obtener su información
@@ -65,34 +75,25 @@ class PersonalControlador{
         if ($imageInfo) {
             $originalWidth = $imageInfo[0];
             $originalHeight = $imageInfo[1];
-
-            // Establecer las dimensiones deseadas para todas las imágenes (105x196 px)
             $desiredWidth = 105;
             $desiredHeight = 196;
 
-            // Verificar si la imagen es muy pequeña o muy grande y redimensionarla de forma adecuada
             if ($originalWidth > $desiredWidth || $originalHeight > $desiredHeight) {
-                // Redimensionar la imagen a las dimensiones deseadas, manteniendo la relación de aspecto
                 $aspectRatio = $originalWidth / $originalHeight;
                 if ($aspectRatio > 1) {
-                    // Si la imagen es más ancha que alta
                     $newWidth = $desiredWidth;
                     $newHeight = round($desiredWidth / $aspectRatio);
                 } else {
-                    // Si la imagen es más alta que ancha o cuadrada
                     $newHeight = $desiredHeight;
                     $newWidth = round($desiredHeight * $aspectRatio);
                 }
             } else {
-                // Si la imagen es más pequeña que las dimensiones deseadas, se ajusta a un tamaño estándar (para no perder calidad)
                 $newWidth = $originalWidth;
                 $newHeight = $originalHeight;
             }
 
-            // Crear una nueva imagen con las dimensiones ajustadas
             $newImage = imagecreatetruecolor($newWidth, $newHeight);
 
-            // Cargar la imagen original dependiendo del formato
             if ($imageInfo['mime'] == 'image/jpeg') {
                 $originalImage = imagecreatefromjpeg($imagePath);
             } elseif ($imageInfo['mime'] == 'image/png') {
@@ -101,34 +102,31 @@ class PersonalControlador{
                 $originalImage = imagecreatefromgif($imagePath);
             }
 
-            // Redimensionar la imagen original y guardarla en la nueva imagen
             imagecopyresampled($newImage, $originalImage, 0, 0, 0, 0, $newWidth, $newHeight, $originalWidth, $originalHeight);
 
-            // Guardar la imagen redimensionada en un archivo temporal
             ob_start();
-            imagejpeg($newImage);  // Guarda la imagen en formato JPEG
+            imagejpeg($newImage);
             $imageData = ob_get_contents();
             ob_end_clean();
 
-            // Asignar la imagen redimensionada a la propiedad de la clase
             $respuestas->setPer_imagen($imageData);
         } else {
-            // Si la imagen no tiene formato válido, se puede gestionar el error aquí
             echo "Formato de imagen no soportado.";
         }
     }
 
-    // Si no hay errores, procesar el guardado
+    // Procesar el guardado
     if ($respuestas->getPer_codigo() > 0) {
         $this->modelo->Actualizar($respuestas);
     } else {
         $this->modelo->Insertar($respuestas);
     }
 
-    // Redirigir a la lista de personal si todo va bien
+    // Redirigir a la lista de personal
     header("location:?c=personal");
     exit();
 }
+
 
 
     // esto es para eliminar al personal

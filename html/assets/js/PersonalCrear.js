@@ -29,18 +29,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 required: true, 
                 errorMsg: 'Por favor ingrese los apellidos.' 
             },
-            { 
-                name: 'PerDpi', 
-                required: true, 
-                regex: /^[0-9]{13}$/, 
-                errorMsg: 'Ingrese un DPI válido de 13 dígitos.' 
-            },
-            { 
-                name: 'PerNit', 
-                required: true, 
-                regex: /^[a-zA-Z0-90-9]{9}$/, 
-                errorMsg: 'Ingrese un NIT válido de 9 dígitos.' 
-            },
+
             { 
                 name: 'PerTel1', 
                 required: true, 
@@ -48,9 +37,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 errorMsg: 'Ingrese un teléfono principal de 8 dígitos.' 
             },
             { 
-                name: 'PerMail', 
-                regex: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 
-                errorMsg: 'Ingrese un correo electrónico válido.' 
+                //name: 'PerMail', 
+                //regex: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 
+               // errorMsg: 'Ingrese un correo electrónico válido.' 
             },
             { 
                 name: 'PerSituacion', 

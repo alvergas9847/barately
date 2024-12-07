@@ -17,8 +17,12 @@ class Personal{
     private $per_imagen;
     private $per_direccion;
     private $per_fecha_registro;
+    private $per_rol_id;
     private $per_situacion;
-
+    private $rol_id;
+    private $rol_nombre;
+    private $rol_descripcion;
+    private $rol_situacion;
    
 
     //metodo constructor
@@ -72,9 +76,10 @@ class Personal{
     }
 
     // Método de asignación NIT personal
-    public function setPer_nit(string $perNit){
-        $this->per_nit = $perNit;
+    public function setPer_nit(?string $perNit) {
+    $this->per_nit = $perNit ?? ''; // Si recibe null, asigna una cadena vacía
     }
+
 
     //metodos de obtension te1 personal
     public function getPer_tel1() : ?int{
@@ -102,10 +107,11 @@ class Personal{
         return $this->per_mail;
     }
 
-    //metodos de asignacion MAIL personal
-    public function setPer_mail(string $perMail){
-        $this->per_mail=$perMail;
+    // Métodos de asignación MAIL personal
+    public function setPer_mail(?string $perMail) {
+    $this->per_mail = $perMail ?? ''; // Si recibe null, asigna una cadena vacía
     }
+
 
     //metodos de obtension IMAGEN personal
     public function getPer_imagen(){
@@ -122,9 +128,9 @@ class Personal{
         return $this->per_direccion;
     }
 
-    //metodos de asignacion DIRECCION personal
-    public function setPer_direccion(string $perDire){
-        $this->per_direccion=$perDire;
+  // Métodos de asignación DIRECCIÓN personal
+    public function setPer_direccion(?string $perDire) {
+        $this->per_direccion = $perDire ?? ''; // Si recibe null, asigna una cadena vacía
     }
 
 
@@ -139,17 +145,70 @@ class Personal{
     }
 
 
-   //metodos de obtension situacion personal
-   public function getPer_situacion() : ?int{
-    return $this->per_situacion;
+   //metodos de obtension rol del persoanl
+   public function getPer_rol_id() : ?int{
+    return $this->per_rol_id;
     }
 
-    //metodos de asignacion situacion personal
-    public function setPer_situacion(int $perSit){
-        $this->per_situacion=$perSit;
+    //metodos de asignacion rol de personal
+    public function setPer_rol_id(int $perRolid){
+        $this->per_rol_id=$perRolid;
     }
 
- 
+    //metodos de obtension situacion personal
+    public function getPer_situacion() : ?int{
+        return $this->per_situacion;
+        }
+    
+        //metodos de asignacion situacion personal
+        public function setPer_situacion(int $perSit){
+            $this->per_situacion=$perSit;
+        }
+
+
+
+        //metodos de obtension codigo roles
+        public function getRol_id() : ? int{
+            return $this->rol_id;
+        }
+    
+        // Método para asignar el código roles
+        public function setRol_id(int $RolId): void {
+            $this->rol_id = $RolId;
+        }
+        
+        
+        //metodos de obtension nombres rol
+        public function getRol_nombre() : ?string{
+            return $this->rol_nombre;
+        }
+    
+        //metodos de asignacion nombres rol
+        public function setRol_nombre(string $RolNom){
+            $this->rol_nombre=$RolNom;
+        }
+    
+         //metodos de obtension descripcion de roles
+        public function getRol_descripcion() : ?string{
+            return $this->rol_descripcion;
+        }
+    
+        //metodos de asignacion descripcion de roles
+        public function setRol_descripcion(string $RolDesc){
+            $this->rol_descripcion=$RolDesc;
+        }
+        
+          //metodos de obtension situacion roles
+       public function getRol_situacion() : ?int{
+        return $this->rol_situacion;
+        }
+    
+        //metodos de asignacion situacion roles
+        public function setRol_situacion(int $RolSit){
+            $this->rol_situacion=$RolSit;
+        }
+
+        
 
     //vamos a consultar a la tabla
     public function Cantidad() {
@@ -171,6 +230,20 @@ class Personal{
         try {
             // Preparar la consulta
             $consulta=$this->pdo->prepare("SELECT * FROM personal WHERE per_situacion > 0;");
+            $consulta->execute();
+            //este FetchAll trae todos los resultados
+            return $consulta->fetchAll(PDO::FETCH_OBJ);
+        } catch (Exception $e) {
+            //throw $th;
+            die($e->getMessage());
+        }
+    }
+
+
+    public function SelectRoles(){
+        try {
+            // Preparar la consulta
+            $consulta=$this->pdo->prepare("SELECT * FROM roles WHERE rol_situacion > 0;");
             $consulta->execute();
             //este FetchAll trae todos los resultados
             return $consulta->fetchAll(PDO::FETCH_OBJ);
@@ -215,6 +288,7 @@ class Personal{
                 $regresa->setPer_direccion($respuesta->per_direccion); 
                 $regresa->setPer_imagen($respuesta->per_imagen);
                 $regresa->setPer_fecha_registro($respuesta->per_fecha_registro);
+                $regresa->setPer_rol_id($respuesta->per_rol_id);
                 $regresa->setPer_situacion($respuesta->per_situacion);
     
                 // Devolvemos la instancia con los datos
@@ -237,8 +311,8 @@ class Personal{
         try {
  
                 // Consulta SQL
-            $consulta = "INSERT INTO personal (per_nombres, per_apellidos, per_dpi, per_nit, per_tel1, per_tel2, per_mail, per_direccion, per_imagen, per_fecha_registro, per_situacion)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+            $consulta = "INSERT INTO personal (per_nombres, per_apellidos, per_dpi, per_nit, per_tel1, per_tel2, per_mail, per_direccion, per_imagen, per_fecha_registro, per_rol_id, per_situacion)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
     
             // Ejecución de la consulta
             $this->pdo->prepare($consulta)->execute(array(
@@ -252,6 +326,7 @@ class Personal{
                 $respuesta->getPer_direccion(), 
                 $respuesta->getPer_imagen(),
                 $respuesta->getPer_fecha_registro(),
+                $respuesta->getPer_rol_id(),
                 $respuesta->getPer_situacion()
             ));
         } catch (Exception $e) {
@@ -271,15 +346,16 @@ class Personal{
             $consulta = "UPDATE personal SET 
             per_nombres = COALESCE(?, per_nombres), 
             per_apellidos = COALESCE(?, per_apellidos),
-            per_dpi = COALESCE(?, per_dpi),
-            per_nit = COALESCE(?, per_nit),
-            per_tel1 = COALESCE(?, per_tel1),
-            per_tel2 = COALESCE(?, per_tel2),
-            per_mail = COALESCE(?, per_mail),
-            per_direccion = COALESCE(?, per_direccion),
+            per_dpi = COALESCE(NULLIF(?, ''), per_dpi),
+            per_nit = COALESCE(NULLIF(?, ''), per_nit),
+            per_tel1 = COALESCE(NULLIF(?, ''), per_tel1),
+            per_tel2 = COALESCE(NULLIF(?, ''), per_tel2),
+            per_mail = COALESCE(NULLIF(?, ''), per_mail),
+            per_direccion = COALESCE(NULLIF(?, ''), per_direccion),
             per_imagen = COALESCE(?, per_imagen),
-            per_fecha_registro = COALESCE(?, per_fecha_registro),
-            per_situacion = COALESCE(?, per_situacion)
+            per_fecha_registro = COALESCE(NULLIF(?, ''), per_fecha_registro),
+            per_rol_id = COALESCE(NULLIF(?, ''), per_rol_id),
+            per_situacion = COALESCE(NULLIF(?, ''), per_situacion)
             WHERE per_codigo = ?";
     
             // Array de los valores que se insertarán en la consulta
@@ -294,16 +370,17 @@ class Personal{
                 $respuesta->getPer_direccion(),
                 $respuesta->getPer_imagen(),
                 $respuesta->getPer_fecha_registro(),
+                $respuesta->getPer_rol_id(),
                 $respuesta->getPer_situacion(),
                 $respuesta->getPer_codigo()  // El código del personal para la condición WHERE
             );
-    
-            // Imprimir la consulta con los valores
-            //$consultaConValores = vsprintf(str_replace("?", "'%s'", $consulta), $valores);
-            //echo '<pre>';
-            //echo $consultaConValores;  // Imprime la consulta con los valores insertados
-            //echo '</pre>';
-            //exit;  // Detener el script después de mostrar la consulta
+    // Imprimir los valores
+      // Imprimir la consulta con los valores
+           // $consultaConValores = vsprintf(str_replace("?", "'%s'", $consulta), $valores);
+           // echo '<pre>';
+           // echo $consultaConValores;  // Imprime la consulta con los valores insertados
+           // echo '</pre>';
+           // exit;  // Detener el script después de mostrar la consulta
     
             // Preparación de la consulta con los parámetros proporcionados
             $stmt = $this->pdo->prepare($consulta);

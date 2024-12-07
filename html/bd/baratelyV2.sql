@@ -5,27 +5,6 @@ CREATE DATABASE barately;
 -- Usar la base de datos
 USE barately;
 
--- Tabla para almacenar la información del personal
-CREATE TABLE IF NOT EXISTS personal (
-    per_codigo INT AUTO_INCREMENT PRIMARY KEY,  -- Código único del personal
-    per_nombres VARCHAR(100) NOT NULL,          -- Nombres del personal
-    per_apellidos VARCHAR(100) NOT NULL,        -- Apellidos del personal
-    per_dpi CHAR(13)   NULL,  -- DPI de 13 dígitos
-    per_nit VARCHAR(12)   NULL,        -- NIT de hasta 12 caracteres alfanuméricos
-    per_tel1 CHAR(8) NULL,    -- Teléfono principal (8 dígitos)
-    per_tel2 CHAR(8) NULL,   -- Teléfono secundario (8 dígitos)
-    per_mail VARCHAR(50)NULL,                       -- Correo electrónico
-    per_imagen LONGBLOB NULL,                     -- Imagen del personal (almacenada en formato binario)
-    per_direccion VARCHAR(255) NULL,                 -- Dirección del personal
-    per_fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Fecha de registro
-    per_situacion INT NOT NULL DEFAULT 1        -- Estado del registro (1 = Activo, 0 = Inactivo)
-);
-
-SHOW VARIABLES LIKE 'max_allowed_packet';
-
- 
-CREATE INDEX idx_personal_nombre ON personal(per_nombres, per_apellidos);
-
 -- roles para usuarios
 CREATE TABLE IF NOT EXISTS roles (
     rol_id INT AUTO_INCREMENT PRIMARY KEY,      -- ID único del rol
@@ -33,6 +12,32 @@ CREATE TABLE IF NOT EXISTS roles (
     rol_descripcion VARCHAR(255),                -- Descripción opcional del rol
     rol_situacion INT NOT NULL DEFAULT 1
 );
+
+-- Tabla para almacenar la información del personal
+CREATE TABLE IF NOT EXISTS personal (
+    per_codigo INT AUTO_INCREMENT PRIMARY KEY,  -- Código único del personal
+    per_nombres VARCHAR(100) NOT NULL,          -- Nombres del personal
+    per_apellidos VARCHAR(100) NOT NULL,        -- Apellidos del personal
+    per_dpi BIGINT  NOT NULL DEFAULT 777,  -- DPI de 13 dígitos
+    per_nit VARCHAR(12)   NULL,        -- NIT de hasta 12 caracteres alfanuméricos
+    per_tel1 BIGINT  NOT NULL DEFAULT 777,    -- Teléfono principal (8 dígitos)
+    per_tel2 BIGINT  NOT NULL DEFAULT 777,   -- Teléfono secundario (8 dígitos)
+    per_mail VARCHAR(50)NULL,                       -- Correo electrónico
+    per_imagen LONGBLOB NULL,                     -- Imagen del personal (almacenada en formato binario)
+    per_direccion VARCHAR(255) NULL,                 -- Dirección del personal
+    per_fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Fecha de registro
+    per_rol_id INT NOT NULL DEFAULT 3,
+    per_situacion INT NOT NULL DEFAULT 1,        -- Estado del registro (1 = Activo, 0 = Inactivo)
+    FOREIGN KEY (per_rol_id) REFERENCES roles(rol_id)
+);
+ 
+
+SHOW VARIABLES LIKE 'max_allowed_packet';
+
+ 
+CREATE INDEX idx_personal_nombre ON personal(per_nombres, per_apellidos);
+
+ 
 
 -- tabla de usuarios
 CREATE TABLE IF NOT EXISTS usuario (

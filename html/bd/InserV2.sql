@@ -1,23 +1,24 @@
--- personal
-INSERT INTO personal (per_nombres, per_apellidos, per_dpi, per_nit, per_tel1, per_tel2, per_mail, per_direccion, per_imagen, per_situacion)
-VALUES
-('Carlos', 'Martínez López', '1234567890123', '123456789', '56781234', '87654321', 'carlos.martinez@example.com', 'Zona 1, Ciudad de Guatemala', NULL, 1),
-('María', 'Gómez Rivera', '9876543210987', '987654321', '45678901', '65432109', 'maria.gomez@example.com', 'Zona 3, Ciudad de Guatemala', NULL, 1),
-('Luis', 'Rodríguez Pérez', '3456789012345', '345678901', '56789012', '87654320', 'luis.rodriguez@example.com', 'Zona 7, Ciudad de Guatemala', NULL, 1),
-('Ana', 'Fernández Cruz', '6789012345678', '678901234', '12345678', '43210987', 'ana.fernandez@example.com', 'Zona 5, Ciudad de Guatemala', NULL, 1),
-('José', 'Ramírez Morales', '8901234567890', '890123456', '23456789', '54321098', 'jose.ramirez@example.com', 'Zona 10, Ciudad de Guatemala', NULL, 1),
-('mau', 'Ramírez Morales', '8901234567891', '890123451', '23456781', '54321091', 'jose.ramiez@example.com', 'Zona 10, Ciudad de Guatemala', NULL, 1);
 
-
+ 
 -- Insertar registros en la tabla `roles`
-INSERT INTO roles (rol_nombre, rol_descripcion) VALUES
-('Administrador', 'Usuario con acceso completo al sistema, incluyendo configuraciones y gestión de usuarios.'),
-('Usuario', 'Usuario estándar con acceso limitado a funciones específicas del sistema.'),
-('Cliente', 'Usuario externo que interactúa con el sistema para realizar compras o consultas.'),
-('Vendedor', 'Usuario encargado de realizar ventas y atender a los clientes.'),
-('Contador', 'Usuario encargado de gestionar las finanzas y reportes contables del sistema.'),
-('Proveedor', 'Solo consulta sus saldos');
+INSERT INTO roles (rol_nombre, rol_descripcion)
+VALUES
+  ('Administrador', 'Tiene acceso total al sistema'),
+  ('Cajero', 'Realiza ventas y maneja la caja'),
+  ('Cliente', 'Comprador de productos'),
+  ('Vendedor', 'Asiste a los clientes en la sala de ventas'),
+  ('Encargado de almacén', 'Gestiona el inventario y realiza los pedidos'),
+  ('Contador', 'Lleva el control de las finanzas de la tienda');
 
+
+-- personal
+INSERT INTO personal (per_nombres, per_apellidos, per_dpi, per_nit, per_tel1, per_tel2, per_mail, per_direccion, per_rol_id)
+VALUES
+  ('Juan', 'Pérez', 25489632109, '48965210-2', 23456789, 45678901, 'juan.perez@ejemplo.com', '5a. Avenida 12-32, Zona 1', 2),
+  ('María', 'López', 54321987601, '78945612-3', 34567890, 56789012, 'maria.lopez@ejemplo.com', '7a. Calle 5-10, Zona 4', 3),
+  ('Carlos', 'García', 98765432102, '12345678-9', 45678901, 67890123, 'carlos.garcia@ejemplo.com', '10a. Avenida 20-50, Zona 5', 4),
+  ('Ana', 'Martínez', 12345678903, '32165498-7', 56789012, 78901234, 'ana.martinez@ejemplo.com', '15a. Calle 15-75, Zona 6', 1),
+  ('Pedro', 'Rodríguez', 87654321094, '98765432-1', 67890123, 89012345, 'pedro.rodriguez@ejemplo.com', '20a. Avenida 10-25, Zona 7', 5);
 
 -- Insertar registros en la tabla `usuario`
 -- Usuario 1: Administrador
