@@ -198,13 +198,14 @@ INSERT INTO venta (cli_codigo, per_codigo, fecha_venta, total_venta, venta_pagad
 
 
 -- Insertar tipos de pago para proveedores y clientes por mayoreo
-INSERT INTO pago_tipo (pago_tipo_nombre, pago_tipo_descripcion) VALUES
-('Comisión', 'Pago basado en una comisión por ventas realizadas a clientes. Utilizado para vendedores o representantes de ventas.'),  -- Pago por comisión
-('Diario', 'Pago realizado diariamente. Usado generalmente para trabajadores que reciben pago por su jornada diaria de trabajo.'),  -- Pago diario
-('Quincenal', 'Pago realizado cada quincena, es común en muchos trabajos que siguen el ciclo de 15 días.'),  -- Pago quincenal
-('Mensual', 'Pago realizado una vez al mes, común para empleados de planta o trabajos a largo plazo.'),  -- Pago mensual
-('Mayoreo', 'Pago realizado a clientes por compras al por mayor. Generalmente con descuentos especiales por volumen de compra.')  -- Pago por mayoreo
-;
+INSERT INTO pago (pago_nombre, pago_descripcion, pago_situacion) 
+VALUES 
+('Comisión', 'Pago basado en porcentaje de ventas realizadas', 1),  
+('Diario', 'Pago realizado de forma diaria, generalmente para trabajadores de turno', 1),  
+('Quincenal', 'Pago realizado cada 15 días a los empleados', 1),  
+('Mensual', 'Pago realizado a fin de mes, típicamente para empleados fijos', 1),  
+('Extraordinario', 'Pago adicional a los regulares, por trabajos especiales o horas extra', 1);
+
 
 
 -- Insertar comisión para la venta 1
@@ -270,34 +271,33 @@ INSERT INTO pago_venta (venta_codigo, metodo_pago_id, monto, fecha_pago, descrip
 (1, 5, 120, 160.00, 1);  -- Venta 1: 120 unidades de Camiseta Deportiva a 160.00 cada una
 
 
-INSERT INTO tipo_servicio (tipo_servicio_nombre) VALUES
-('Agua'),      -- Servicio básico de agua
-('Luz'),       -- Servicio básico de electricidad
-('Internet'),  -- Servicio de internet
-('Gas'),       -- Servicio de gas
-('Teléfono');  -- Servicio telefónico
+ INSERT INTO servicio (ser_nombre, ser_descri, ser_tipo, ser_sit) 
+VALUES 
+('Agua', 'Suministro de agua potable', 1, 1),
+('Electricidad', 'Suministro de energía eléctrica', 1, 1),
+('Internet', 'Servicio de internet residencial', 1, 1),
+('Alquiler de Bodega', 'Renta mensual de bodega', 2, 1),
+('Renta de Apartamento', 'Alquiler de apartamentos amueblados', 2, 1);
 
-INSERT INTO pago_servicio (per_codigo, tipo_servicio_id, monto, fecha_pago, pago_situacion, pago_total) VALUES
-(1, 1, 50.00, '2024-11-01 09:00:00', 1, 50.00),  -- Cliente 1 paga por el servicio de agua
-(2, 2, 75.00, '2024-11-05 10:00:00', 1, 75.00),  -- Cliente 2 paga por el servicio de luz
-(3, 3, 100.00, '2024-11-10 11:30:00', 1, 100.00), -- Cliente 3 paga por el servicio de internet
-(4, 4, 120.00, '2024-11-12 14:00:00', 1, 120.00), -- Cliente 4 paga por el servicio de gas
-(5, 5, 80.00, '2024-11-15 16:00:00', 1, 80.00);   -- Cliente 5 paga por el servicio telefónico
 
-INSERT INTO tipo_servicio_prestado (tipo_servicio_nombre) VALUES
-('Bodega'),        -- Tipo de servicio de alquiler de bodega
-('Alquiler de oficina'), -- Tipo de servicio de alquiler de oficina
-('Alquiler de departamento'), -- Tipo de servicio de alquiler de departamento
-('Alquiler de vivienda'), -- Tipo de servicio de alquiler de vivienda
-('Alquiler de local comercial'); -- Tipo de servicio de alquiler de local comercial
+INSERT INTO pago_servicio (pagser_per_codigo, pagser_ser_codigo, pagser_monto, pagser_fecha, pagser_total, pagser_descripcion, pagser_pag_tipo_id, pagser_meto_pago_id) 
+VALUES 
+(1, 1, 50.00, '2024-12-01 10:00:00', '2024-12-01 10:00:00', 100.00, 'Pago parcial por el servicio de agua', 1, 1),  
+(2, 2, 75.00, '2024-12-02 11:00:00', '2024-12-02 11:00:00', 150.00, 'Pago de electricidad correspondiente a noviembre', 1, 2),  
+(3, 3, 60.00, '2024-12-03 15:30:00', '2024-12-03 15:30:00', 120.00, 'Primer pago por servicio de internet residencial', 2, 1),  
+(4, 4, 500.00, '2024-12-04 14:00:00', '2024-12-04 14:00:00', 500.00, 'Pago único de renta de bodega', 4, 3),  
+(5, 5, 800.00, '2024-12-05 09:00:00', '2024-12-05 09:00:00', 800.00, 'Pago mensual del alquiler del apartamento', 4, 2);
 
-INSERT INTO cobro_servicio (per_codigo, tipo_servicio_id, monto, fecha_cobro, fecha_inicio, fecha_fin, cobro_situacion) VALUES
-(1, 1, 500.00, '2024-11-01 10:00:00', '2024-11-01', '2024-11-30', 1),  -- Cobro por alquiler de bodega para el cliente 1
-(2, 2, 1200.00, '2024-11-02 12:00:00', '2024-11-01', '2024-11-30', 1),  -- Cobro por alquiler de oficina para el cliente 2
-(3, 3, 2500.00, '2024-11-05 14:00:00', '2024-11-01', '2024-11-30', 1),  -- Cobro por alquiler de departamento para el cliente 3
-(4, 4, 1500.00, '2024-11-10 16:00:00', '2024-11-01', '2024-11-30', 1),  -- Cobro por alquiler de vivienda para el cliente 4
-(5, 5, 2000.00, '2024-11-12 18:00:00', '2024-11-01', '2024-11-30', 1);  -- Cobro por alquiler de local comercial para el cliente 5
 
+ 
+
+INSERT INTO cobro_servicio (cobser_per_codigo, cobser_ser_codigo, cobser_monto, cobser_fecha, cobser_total, cobser_descripcion, cobser_pag_tipo_id, cobser_meto_pago_id) 
+VALUES 
+(1, 1, 50.00, '2024-12-01 08:00:00', 100.00, 'Cobro parcial del servicio de agua', 1, 1),  
+(2, 2, 100.00, '2024-12-02 12:00:00', 200.00, 'Cobro por electricidad, mes de noviembre', 1, 2),  
+(3, 3, 70.00, '2024-12-03 16:00:00', 140.00, 'Cobro inicial por internet residencial', 2, 1),  
+(4, 4, 400.00, '2024-12-04 13:00:00', 400.00, 'Cobro único de renta de bodega', 4, 3),  
+(5, 5, 900.00, '2024-12-05 10:00:00', 900.00, 'Cobro mensual del apartamento alquilado', 4, 2);
 
 -----****
 

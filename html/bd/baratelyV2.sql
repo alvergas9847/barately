@@ -160,10 +160,11 @@ CREATE TABLE venta (
  
  
 -- Esta tabla puede ayudarte a clasificar los distintos tipos de pago (por comisión, por día, por quincena o por mes).
-CREATE TABLE pago_tipo (
-    pago_tipo_id INT AUTO_INCREMENT PRIMARY KEY,      -- ID único del tipo de pago
-    pago_tipo_nombre VARCHAR(50) NOT NULL,            -- Nombre del tipo de pago (Comisión, Diario, Quincenal, Mensual)
-    pago_tipo_descripcion VARCHAR(255)                -- Descripción opcional del tipo de pago
+CREATE TABLE pago (
+    pago_codigo INT AUTO_INCREMENT PRIMARY KEY,      -- ID único del tipo de pago
+    pago_nombre VARCHAR(50) NOT NULL,            -- Nombre del tipo de pago (Comisión, Diario, Quincenal, Mensual)
+    pago_descripcion VARCHAR(255),                -- Descripción opcional del tipo de pago
+    pago_situacion SMALLINT NOT NULL DEFAULT 1    -- Situacion, activo a inactivo
 );
 
 
@@ -189,7 +190,7 @@ CREATE TABLE pago_persona (
     descripcion TEXT,                                -- Descripción del pago
     pago_situacion INT NOT NULL DEFAULT 1,           -- Estado del registro (1 = Activa, 0 = Inactiva)
     FOREIGN KEY (per_codigo) REFERENCES personal(per_codigo),  -- Relación con la tabla personal
-    FOREIGN KEY (pago_tipo_id) REFERENCES pago_tipo(pago_tipo_id)  -- Relación con la tabla pago_tipo
+    FOREIGN KEY (pago_tipo_id) REFERENCES pago(pago_codigo)  -- Relación con la tabla pago_tipo
 );
 
 -- Si necesitas llevar un control más detallado de los pagos, podrías tener una tabla de pago_detalle que almacene información adicional sobre cada pago realizado, como los periodos de pago o las comisiones asociadas.
@@ -279,50 +280,38 @@ CREATE INDEX idx_pago_fecha_venta ON pago_venta(fecha_pago);
 
 
 -- Tabla para tipos de servicios básicos
-CREATE TABLE tipo_servicio (
-    tipo_servicio_id INT AUTO_INCREMENT PRIMARY KEY,  -- Código único del tipo de servicio
-    tipo_servicio_nombre VARCHAR(100) NOT NULL        -- Nombre del tipo de servicio (agua, luz, internet, etc.)
+CREATE TABLE servicio (
+    ser_codigo INT AUTO_INCREMENT PRIMARY KEY, -- Código único del tipo de servicio
+    ser_nombre VARCHAR(100) NOT NULL,         -- Nombre del servicio
+    ser_descri VARCHAR(250) NOT NULL,         -- Descripción del servicio
+    ser_tipo SMALLINT NOT NULL DEFAULT 1,     -- 01: Servicios básicos, 02: Rentas
+    ser_sit SMALLINT NOT NULL DEFAULT 1       -- Situación: 1=Activo, 0=Inactivo
 );
 
--- Tabla para almacenar los pagos de servicios básicos
+-- Tabla para almacenar los pagos y cobros de servicios básicos y rentas
 CREATE TABLE pago_servicio (
-    servicio_codigo INT AUTO_INCREMENT PRIMARY KEY,   -- Código único del pago
-    per_codigo INT,                                   -- Código del cliente (FK)
-    tipo_servicio_id INT,                             -- ID del tipo de servicio (FK)
-    monto DECIMAL(10, 2) NOT NULL,                    -- Monto del pago
-    fecha_pago DATETIME NOT NULL,                     -- Fecha del pago
-    pago_situacion INT NOT NULL DEFAULT 1,            -- Estado del registro (1 = Activo, 0 = Inactivo)
-    pago_total DECIMAL(10, 2) NOT NULL,               -- Monto total del servicio (pago total)
-    FOREIGN KEY (per_codigo) REFERENCES personal(per_codigo),  -- Relación con la tabla cliente
-    FOREIGN KEY (tipo_servicio_id) REFERENCES tipo_servicio(tipo_servicio_id)  -- Relación con la tabla tipo_servicio
+    pagser_codigo INT AUTO_INCREMENT PRIMARY KEY,   -- Código único del pago
+    pagser_per_codigo INT,                           -- Código del cliente (FK)
+    pagser_ser_codigo INT,                           -- ID del tipo de servicio (FK)
+    pagser_monto DECIMAL(10, 2) NOT NULL,              -- Monto del pago
+    pagser_fecha_ini DATETIME NOT NULL,                     -- Fecha del pago
+    pagser_fecha_fin DATETIME NOT NULL,                     -- Fecha del pago
+	pagser_situacion INT NOT NULL DEFAULT 1,            -- Estado del registro (1 = Activo, 0 = Inactivo)
+    pagser_total DECIMAL(10, 2) NOT NULL,               -- Monto total del servicio (pago total)
+    pagser_descripcion VARCHAR(250) NOT NULL,         -- Descripción del del pago
+    pagser_pag_tipo_id INT NULL,                        -- Codigo del tipo de pago (por día, semana, quincena, mes)
+    pagser_meto_pago_id INT NULL,                       -- Codigo del tipo de pago (efectivo, tarjeta)
+    FOREIGN KEY (pagser_per_codigo) REFERENCES personal(per_codigo),  -- Relación con la tabla cliente
+    FOREIGN KEY (pagser_ser_codigo) REFERENCES servicio(ser_codigo)  -- Relación con la tabla tipo_servicio
 );
 
-
-CREATE INDEX idx_pago_fecha_servicio ON pago_servicio(fecha_pago);
-
--- Tabla para almacenar los pagos de renta
-CREATE TABLE tipo_servicio_prestado (
-    tipo_servicio_id INT AUTO_INCREMENT PRIMARY KEY,  -- Código único del tipo de servicio
-    tipo_servicio_nombre VARCHAR(100) NOT NULL        -- Nombre del tipo de servicio (bodega, alquiler, etc.)
-);
-
-
-CREATE TABLE cobro_servicio (
-    cobro_codigo INT AUTO_INCREMENT PRIMARY KEY,        -- Código único del cobro
-    per_codigo INT,                                     -- Código del cliente (FK)
-    tipo_servicio_id INT,                               -- ID del tipo de servicio (FK) (por ejemplo, bodega, alquiler)
-    monto DECIMAL(10, 2) NOT NULL,                      -- Monto del cobro
-    fecha_cobro DATETIME NOT NULL,                      -- Fecha del cobro
-    fecha_inicio DATETIME,                              -- Fecha de inicio del servicio (si aplica)
-    fecha_fin DATETIME,                                 -- Fecha de fin del servicio (si aplica)
-    cobro_situacion INT NOT NULL DEFAULT 1,             -- Estado del registro (1 = Activo, 0 = Inactivo)
-    FOREIGN KEY (per_codigo) REFERENCES personal(per_codigo),   -- Relación con la tabla cliente
-    FOREIGN KEY (tipo_servicio_id) REFERENCES tipo_servicio_prestado(tipo_servicio_id)  -- Relación con la tabla tipo_servicio_prestado
-);
-
+ 
+ 
+ CREATE INDEX idx_pago_fecha_servicio ON pago_servicio(pagser_fecha);
 
 
 --=================================[ F I N ]==========================================--------
+
 -- tabla de auditoria de persoanl
 CREATE TABLE IF NOT EXISTS auditoria_personal (
     aud_codigo INT AUTO_INCREMENT PRIMARY KEY,
@@ -447,3 +436,117 @@ END $$
 
 DELIMITER ;
 
+-- Procedimiento almacenados para movimientos de pagos
+DELIMITER $$
+
+CREATE PROCEDURE RegistrarPago(
+    IN p_per_codigo INT,
+    IN p_ser_codigo INT,
+    IN p_monto DECIMAL(10, 2),
+    IN p_total DECIMAL(10, 2),
+    IN p_pag_tipo_id INT,
+    IN p_meto_pago_id INT
+)
+BEGIN
+    -- Validar que el cliente y el servicio existan
+    IF (SELECT COUNT(*) FROM personal WHERE per_codigo = p_per_codigo) = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cliente no encontrado.';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM servicio WHERE ser_codigo = p_ser_codigo) = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Servicio no encontrado.';
+    END IF;
+
+    -- Insertar el registro del pago
+    INSERT INTO pago_servicio (pagser_per_codigo, pagser_ser_codigo, pagser_monto, pagser_total, pagser_fecha, pagser_pag_tipo_id, pagser_meto_pago_id)
+    VALUES (p_per_codigo, p_ser_codigo, p_monto, p_total, NOW(), p_pag_tipo_id, p_meto_pago_id);
+END$$
+
+DELIMITER ;
+
+-- Procedimiento almacenado para registrar un Cobro
+DELIMITER $$
+
+CREATE PROCEDURE RegistrarCobro(
+    IN c_per_codigo INT,
+    IN c_ser_codigo INT,
+    IN c_monto DECIMAL(10, 2),
+    IN c_total DECIMAL(10, 2),
+    IN c_pag_tipo_id INT,
+    IN c_meto_pago_id INT
+)
+BEGIN
+    -- Validar que el cliente y el servicio existan
+    IF (SELECT COUNT(*) FROM personal WHERE per_codigo = c_per_codigo) = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cliente no encontrado.';
+    END IF;
+
+    IF (SELECT COUNT(*) FROM servicio WHERE ser_codigo = c_ser_codigo) = 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Servicio no encontrado.';
+    END IF;
+
+    -- Insertar el registro del cobro
+    INSERT INTO cobro_servicio (cobser_per_codigo, cobser_ser_codigo, cobser_monto, cobser_total, cobser_fecha, cobser_pag_tipo_id, cobser_meto_pago_id)
+    VALUES (c_per_codigo, c_ser_codigo, c_monto, c_total, NOW(), c_pag_tipo_id, c_meto_pago_id);
+END$$
+
+DELIMITER ;
+
+-- Triggers para mantener resumen consolidado
+CREATE TABLE resumen_movimientos (
+    res_codigo INT AUTO_INCREMENT PRIMARY KEY,
+    res_tipo ENUM('Pago', 'Cobro') NOT NULL,
+    res_fecha DATETIME NOT NULL,
+    res_cliente_id INT NOT NULL,
+    res_servicio_id INT NOT NULL,
+    res_monto DECIMAL(10, 2) NOT NULL,
+    res_total DECIMAL(10, 2) NOT NULL,
+    res_situacion INT NOT NULL DEFAULT 1
+);
+
+-- Triggers para mantener insertar actualizado
+DELIMITER $$
+
+CREATE TRIGGER after_pago_insert
+AFTER INSERT ON pago_servicio
+FOR EACH ROW
+BEGIN
+    INSERT INTO resumen_movimientos (res_tipo, res_fecha, res_cliente_id, res_servicio_id, res_monto, res_total, res_situacion)
+    VALUES ('Pago', NEW.pagser_fecha, NEW.pagser_per_codigo, NEW.pagser_ser_codigo, NEW.pagser_monto, NEW.pagser_total, NEW.pagser_situacion);
+END$$
+
+DELIMITER ;
+-- Triggers para mantener insertar actualizado de cobros
+DELIMITER $$
+
+CREATE TRIGGER after_cobro_insert
+AFTER INSERT ON cobro_servicio
+FOR EACH ROW
+BEGIN
+    INSERT INTO resumen_movimientos (res_tipo, res_fecha, res_cliente_id, res_servicio_id, res_monto, res_total, res_situacion)
+    VALUES ('Cobro', NEW.cobser_fecha, NEW.cobser_per_codigo, NEW.cobser_ser_codigo, NEW.cobser_monto, NEW.cobser_total, NEW.cobser_situacion);
+END$$
+
+DELIMITER ;
+
+-- procedimiento para obtenre resumen por cliente o servicio
+DELIMITER $$
+
+CREATE PROCEDURE ObtenerResumen(
+    IN p_cliente_id INT,
+    IN p_servicio_id INT
+)
+BEGIN
+    SELECT 
+        res_tipo AS Tipo,
+        SUM(res_monto) AS TotalMonto,
+        SUM(res_total) AS TotalServicio,
+        COUNT(*) AS Movimientos
+    FROM resumen_movimientos
+    WHERE 
+        (p_cliente_id IS NULL OR res_cliente_id = p_cliente_id) AND
+        (p_servicio_id IS NULL OR res_servicio_id = p_servicio_id)
+    GROUP BY res_tipo;
+END$$
+
+DELIMITER ;
