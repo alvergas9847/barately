@@ -280,24 +280,16 @@ VALUES
 ('Renta de Apartamento', 'Alquiler de apartamentos amueblados', 2, 1);
 
 
-INSERT INTO pago_servicio (pagser_per_codigo, pagser_ser_codigo, pagser_monto, pagser_fecha, pagser_total, pagser_descripcion, pagser_pag_tipo_id, pagser_meto_pago_id) 
-VALUES 
-(1, 1, 50.00, '2024-12-01 10:00:00', '2024-12-01 10:00:00', 100.00, 'Pago parcial por el servicio de agua', 1, 1),  
-(2, 2, 75.00, '2024-12-02 11:00:00', '2024-12-02 11:00:00', 150.00, 'Pago de electricidad correspondiente a noviembre', 1, 2),  
-(3, 3, 60.00, '2024-12-03 15:30:00', '2024-12-03 15:30:00', 120.00, 'Primer pago por servicio de internet residencial', 2, 1),  
-(4, 4, 500.00, '2024-12-04 14:00:00', '2024-12-04 14:00:00', 500.00, 'Pago único de renta de bodega', 4, 3),  
-(5, 5, 800.00, '2024-12-05 09:00:00', '2024-12-05 09:00:00', 800.00, 'Pago mensual del alquiler del apartamento', 4, 2);
-
-
- 
-
-INSERT INTO cobro_servicio (cobser_per_codigo, cobser_ser_codigo, cobser_monto, cobser_fecha, cobser_total, cobser_descripcion, cobser_pag_tipo_id, cobser_meto_pago_id) 
-VALUES 
-(1, 1, 50.00, '2024-12-01 08:00:00', 100.00, 'Cobro parcial del servicio de agua', 1, 1),  
-(2, 2, 100.00, '2024-12-02 12:00:00', 200.00, 'Cobro por electricidad, mes de noviembre', 1, 2),  
-(3, 3, 70.00, '2024-12-03 16:00:00', 140.00, 'Cobro inicial por internet residencial', 2, 1),  
-(4, 4, 400.00, '2024-12-04 13:00:00', 400.00, 'Cobro único de renta de bodega', 4, 3),  
-(5, 5, 900.00, '2024-12-05 10:00:00', 900.00, 'Cobro mensual del apartamento alquilado', 4, 2);
+INSERT INTO pago_servicio (
+    pagser_per_codigo, pagser_ser_codigo, pagser_monto, pagser_fecha_ini, 
+    pagser_fecha_fin, pagser_total, pagser_descripcion, 
+    pagser_pag_tipo_id, pagser_meto_pago_id, pagser_situacion
+) VALUES 
+(1, 1, 1500.00, '2024-12-01 08:00:00', '2024-12-31 08:00:00', 1500.00, 'Pago mensual del servicio de internet', 4, 1, 1),
+(2, 2, 500.00, '2024-12-01 08:00:00', '2024-12-07 08:00:00', 2000.00, 'Pago semanal de renta', 2, 2, 1),
+(3, 3, 200.00, '2024-12-10 08:00:00', '2024-12-10 08:00:00', 200.00, 'Pago único por servicio de mantenimiento', 1, 1, 1),
+(4, 1, 750.00, '2024-12-01 08:00:00', '2024-12-15 08:00:00', 1500.00, 'Pago quincenal de servicio de internet', 3, 2, 1),
+(5, 4, 1000.00, '2024-12-01 08:00:00', '2024-12-31 08:00:00', 1000.00, 'Pago mensual del servicio de agua', 4, 1, 1);
 
 -----****
 

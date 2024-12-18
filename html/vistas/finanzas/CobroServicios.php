@@ -8,7 +8,7 @@
 <br>
 <div class="position-relative">
   <div class="position-absolute top-0 start-50 translate-middle">
-    <a  href="?c=finanzas&a=CrearServicios">	<button type="button" class="btn btn-outline-primary">Agregar</button> </a>
+    <a  href="?c=finanzas&a=CrearCobros">	<button type="button" class="btn btn-outline-primary">Agregar</button> </a>
 </div>
 </div>
 
@@ -49,7 +49,7 @@
         $pagser_ser_codigo = $resultado->pagser_ser_codigo;
         $pagser_monto = $resultado->pagser_monto;
         $pagser_fecha_ini = $resultado->pagser_fecha_ini;
-        $agser_fecha_fin = $resultado->agser_fecha_fin;
+        $pagser_fecha_fin = $resultado->pagser_fecha_fin;
         $pagser_total = $resultado->pagser_total;
         $pagser_descripcion = $resultado->pagser_descripcion;
         $pagser_pag_tipo_id = $resultado->pagser_pag_tipo_id;
@@ -69,15 +69,15 @@
       
     <tr>
         <td ><?php echo($no) ?> </td>
-        <td ><?php echo($per_nombres.' '.$per_apellidos)?></td>
+        <td ><?php echo($per_nombres.'  '.$per_apellidos)?></td>
         <td ><?php echo($pagser_monto)?></td>
 
-        <input type="hidden" value="<?php $ser_codigo?>"></input>
+        <input type="hidden" value="<?php $pagser_codigo?>"></input>
 
-        <td > <?php if($pagser_situacion==1){ echo("Servicios Básicos");}else{echo("Rentas");}?> </td>
+        <td > <?php if($pagser_situacion==1){ echo("DEBE");}else{echo("Pagos de Rentas y Servicios");}?> </td>
         <td >
-        <a  href='?c=finanzas&a=CrearServicios&SerCodigo=<?php echo $ser_codigo; ?>'>	<button type="button" class="btn btn-warning" > Editar </button> </a>
-        <a  href='?c=finanzas&a=EliminarServicios&SerCodigo=<?php echo $ser_codigo; ?>'>	<button type="button" class="btn btn-danger">Eliminar</button></td> </a>
+        <a  href='?c=finanzas&a=CrearServicios&SerCodigo=<?php echo $pagser_codigo; ?>'>	<button type="button" class="btn btn-warning" > Editar </button> </a>
+        <a  href='?c=finanzas&a=EliminarServicios&SerCodigo=<?php echo $pagser_codigo; ?>'>	<button type="button" class="btn btn-danger">Eliminar</button></td> </a>
     </tr>
     <?php $no =$no+1; ?>
     <?php endforeach; ?>

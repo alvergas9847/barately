@@ -126,4 +126,18 @@ class FinanzasControlador{
         require_once "vistas/pie.php";
     }
 
+
+    //===================================================
+    //===================[HACEMOS CrearCobros]=====================
+    //===================================================
+    // aqui van el METHODO de servicios Basicos
+    public function CrearCobros() {
+    
+        // Incluir las vistas necesarias
+        require_once "vistas/encabezado.php";
+        require_once "vistas/finanzas/CrearCobros.php"; // Pasamos $p y $titulo
+        require_once "vistas/pie.php";
+    }
+
+
 }

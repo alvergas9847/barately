@@ -296,11 +296,11 @@ CREATE TABLE pago_servicio (
     pagser_monto DECIMAL(10, 2) NOT NULL,              -- Monto del pago
     pagser_fecha_ini DATETIME NOT NULL,                     -- Fecha del pago
     pagser_fecha_fin DATETIME NOT NULL,                     -- Fecha del pago
-	pagser_situacion INT NOT NULL DEFAULT 1,            -- Estado del registro (1 = Activo, 0 = Inactivo)
     pagser_total DECIMAL(10, 2) NOT NULL,               -- Monto total del servicio (pago total)
     pagser_descripcion VARCHAR(250) NOT NULL,         -- Descripción del del pago
     pagser_pag_tipo_id INT NULL,                        -- Codigo del tipo de pago (por día, semana, quincena, mes)
     pagser_meto_pago_id INT NULL,                       -- Codigo del tipo de pago (efectivo, tarjeta)
+    pagser_situacion INT NOT NULL DEFAULT 1,            -- Estado del registro (1 = cobos, 2 = Pagos, 0 = Inactivo)
     FOREIGN KEY (pagser_per_codigo) REFERENCES personal(per_codigo),  -- Relación con la tabla cliente
     FOREIGN KEY (pagser_ser_codigo) REFERENCES servicio(ser_codigo)  -- Relación con la tabla tipo_servicio
 );
