@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARATELY — Ventas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="nav.js"></script>
+<script>document.write(Nav.sidebarCSS())</script>
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--accent:#7c6aff;--accent-glow:rgba(124,106,255,0.2);--text:#f0f0f8;--muted:#6b6b80;--muted2:#3a3a50;--success:#6affb4;--danger:#ff6a6a;--warning:#ffb76a;--info:#6ab4ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.nav-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.nav-hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.fecha-chip{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.btn-logout{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger);}
+.content{padding:24px 28px;flex:1;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;transition:transform .2s;}
+.kpi:hover{transform:translateY(-2px);}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.filters{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+.search-input{flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
+.filter-select option{background:var(--surface2);}
+.filter-date{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);outline:none;cursor:pointer;}
+.tabla{width:100%;border-collapse:collapse;}
+.tabla th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tabla td{padding:10px 12px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+.tabla tr:last-child td{border-bottom:none;}
+.tabla tr:hover td{background:rgba(255,255,255,0.02);}
+.btn-accion{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-right:3px;}
+.btn-accion:hover{color:var(--text);border-color:var(--border2);}
+.btn-accion.ver:hover{color:var(--accent);border-color:var(--accent);}
+.btn-accion.anular:hover{color:var(--danger);border-color:var(--danger);}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;text-transform:capitalize;}
+.tag-green{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-red{background:rgba(255,106,106,.12);color:var(--danger);}
+.tag-warn{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-muted{background:rgba(255,255,255,.06);color:var(--muted);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;animation:fadeUp .22s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface);}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+.btn-danger{background:rgba(255,106,106,.12);color:var(--danger);border:1px solid rgba(255,106,106,.2);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-danger:hover{background:rgba(255,106,106,.2);}
+.detalle-item{padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.detalle-item:last-child{border-bottom:none;}
+.pago-item{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;padding:14px;background:var(--surface2);border-radius:10px;}
+.info-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px;}
+.info-item span{font-size:13px;}
+.pagination{display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid var(--border);justify-content:flex-end;}
+.page-btn{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.page-btn:hover{color:var(--text);border-color:var(--border2);}
+.page-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.page-btn:disabled{opacity:.4;cursor:not-allowed;}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:900px){.nav-main{margin-left:0;}.nav-hamburger{display:block!important;}.content{padding:16px;}.topbar{padding:12px 16px;}.info-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<script>document.write(Nav.sidebarHTML())</script>
+<div class="nav-main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="nav-hamburger" onclick="Nav.toggleSidebar()">&#9776;</button>
+      <div class="page-title">Ventas</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fecha-chip" id="navFecha"></div>
+      <button class="btn-logout" onclick="Nav.logout()">Salir</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="kpi-grid" id="kpiGrid"><div class="loading"><span class="spinner"></span></div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('historial',this)">Historial</div>
+      <div class="tab" onclick="switchTab('hoy',this)">Ventas de hoy</div>
+      <div class="tab" onclick="switchTab('comisiones',this)">Comisiones</div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div id="tab-historial">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Historial de ventas</div></div>
+        <div class="filters">
+          <input class="search-input" id="searchVenta" placeholder="Buscar cliente o vendedor..." oninput="filtrarVentas()" style="max-width:260px;"/>
+          <input class="filter-date" type="date" id="filtroFechaIni" onchange="filtrarVentas()"/>
+          <input class="filter-date" type="date" id="filtroFechaFin" onchange="filtrarVentas()"/>
+          <select class="filter-select" id="filtroEstado" onchange="filtrarVentas()">
+            <option value="">Todos los estados</option>
+            <option value="completada">Completada</option>
+            <option value="anulada">Anulada</option>
+            <option value="devolucion">Devolucion</option>
+          </select>
+          <select class="filter-select" id="filtroTurno" onchange="filtrarVentas()">
+            <option value="">Todos los turnos</option>
+            <option value="manana">Manana</option>
+            <option value="tarde">Tarde</option>
+            <option value="noche">Noche</option>
+          </select>
+          <button class="btn-secondary" onclick="limpiarFiltros()" style="padding:7px 12px;font-size:12px;">Limpiar</button>
+        </div>
+        <div id="tablaVentas"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+        <div id="paginacion" class="pagination"></div>
+      </div>
+    </div>
+
+    <!-- HOY -->
+    <div id="tab-hoy" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Ventas de hoy</div>
+          <span style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:rgba(106,255,180,.1);color:var(--success)">Tiempo real</span>
+        </div>
+        <div id="tablaHoy"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="resumenHoyGrid"></div>
+    </div>
+
+    <!-- COMISIONES -->
+    <div id="tab-comisiones" style="display:none">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Comisiones del mes</div></div>
+        <div class="filters">
+          <input class="filter-date" type="date" id="comIni"/>
+          <input class="filter-date" type="date" id="comFin"/>
+          <button class="btn-primary" onclick="loadComisiones()" style="padding:7px 14px;font-size:12px;">Buscar</button>
+        </div>
+        <div id="tablaComisiones"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DETALLE VENTA -->
+<div class="modal-bg" id="modalDetalle">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="detalleTitulo">Detalle de venta</div>
+      <button class="modal-close" onclick="cerrarModal('modalDetalle')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="detalleBody">
+      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    </div>
+    <div class="modal-footer" id="detalleFooter"></div>
+  </div>
+</div>
+
+<!-- MODAL ANULAR -->
+<div class="modal-bg" id="modalAnular">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-hdr">
+      <div class="modal-title">Anular venta</div>
+      <button class="modal-close" onclick="cerrarModal('modalAnular')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Esta accion cambia el estado de la venta a <strong style="color:var(--danger)">Anulada</strong>. No se puede deshacer.</p>
+      <div style="display:flex;flex-direction:column;gap:4px;">
+        <label style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);">Motivo de anulacion *</label>
+        <textarea id="motivoAnular" placeholder="Explica el motivo de la anulacion..." style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:vertical;min-height:80px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalAnular')">Cancelar</button>
+      <button class="btn-danger" onclick="confirmarAnular()">Anular venta</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _ventas=[], _ventasFiltradas=[], _ventaAnularId=null;
+let _pagina=1, _porPagina=20, _tabLoaded={};
+const Q=v=>"Q"+parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+function cerrarModal(id){document.getElementById(id).classList.remove('open');}
+Nav.init('ventas');
+const puedeAnular=Nav.puede('puedeEditar');
+
+// TABS
+function switchTab(id,el){
+  ['historial','hoy','comisiones'].forEach(t=>document.getElementById('tab-'+t).style.display=t===id?'':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(!_tabLoaded[id]){_tabLoaded[id]=true;
+    if(id==='historial')loadVentas();
+    if(id==='hoy')loadHoy();
+    if(id==='comisiones')initComisiones();
+  }
+}
+
+// KPIs
+async function loadKPIs(){
+  const sb=Nav.getSb();
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  const [rH,rM,rS,rT]=await Promise.all([
+    sb.from('ventas').select('total').eq('estado','completada').gte('fecha',hoy),
+    sb.from('ventas').select('total').eq('estado','completada').gte('fecha',ini),
+    sb.from('ventas').select('total').eq('estado','completada').gte('fecha',hoy),
+    sb.from('ventas').select('id',{count:'exact'}).eq('estado','anulada').gte('fecha',ini),
+  ]);
+  const th=(rH.data||[]).reduce((s,v)=>s+parseFloat(v.total||0),0);
+  const tm=(rM.data||[]).reduce((s,v)=>s+parseFloat(v.total||0),0);
+  const nh=(rH.data||[]).length;
+  const ticket=nh>0?th/nh:0;
+  document.getElementById('kpiGrid').innerHTML=
+    '<div class="kpi"><div class="kpi-label">Ventas hoy</div><div class="kpi-value" style="color:var(--success)">'+Q(th)+'</div><div class="kpi-sub">'+nh+' transacciones</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Ventas del mes</div><div class="kpi-value" style="color:var(--accent)">'+Q(tm)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Ticket promedio</div><div class="kpi-value">'+Q(ticket)+'</div><div class="kpi-sub">Hoy</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Anuladas mes</div><div class="kpi-value" style="color:var(--danger)">'+(rT.count||0)+'</div></div>';
+}
+
+// HISTORIAL
+async function loadVentas(){
+  const sb=Nav.getSb();
+  const res=await sb.from('ventas')
+    .select('id,total,fecha,turno,estado,clientes(nombre,apellidos),usuarios(nombre)')
+    .order('fecha',{ascending:false}).limit(500);
+  _ventas=res.data||[];
+  // Fechas por defecto: mes actual
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  document.getElementById('filtroFechaIni').value=ini;
+  document.getElementById('filtroFechaFin').value=hoy;
+  filtrarVentas();
+}
+
+function filtrarVentas(){
+  const txt=document.getElementById('searchVenta').value.toLowerCase();
+  const ini=document.getElementById('filtroFechaIni').value;
+  const fin=document.getElementById('filtroFechaFin').value;
+  const est=document.getElementById('filtroEstado').value;
+  const turno=document.getElementById('filtroTurno').value;
+  _ventasFiltradas=_ventas.filter(v=>{
+    const mT=!txt||(v.clientes?.nombre||'').toLowerCase().includes(txt)||(v.usuarios?.nombre||'').toLowerCase().includes(txt);
+    const fecha=v.fecha?.substring(0,10)||'';
+    const mF=(!ini||fecha>=ini)&&(!fin||fecha<=fin);
+    const mE=!est||v.estado===est;
+    const mTu=!turno||v.turno===turno;
+    return mT&&mF&&mE&&mTu;
+  });
+  _pagina=1;
+  renderVentas();
+}
+
+function limpiarFiltros(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  document.getElementById('searchVenta').value='';
+  document.getElementById('filtroFechaIni').value=ini;
+  document.getElementById('filtroFechaFin').value=hoy;
+  document.getElementById('filtroEstado').value='';
+  document.getElementById('filtroTurno').value='';
+  filtrarVentas();
+}
+
+const ESTADO_TAG={completada:'tag-green',anulada:'tag-red',devolucion:'tag-warn',pendiente:'tag-muted'};
+
+function renderVentas(){
+  const total=_ventasFiltradas.length;
+  const pages=Math.ceil(total/_porPagina);
+  const inicio=(_pagina-1)*_porPagina;
+  const data=_ventasFiltradas.slice(inicio,inicio+_porPagina);
+  if(!data.length){
+    document.getElementById('tablaVentas').innerHTML='<div class="loading">Sin ventas con esos filtros.</div>';
+    document.getElementById('paginacion').innerHTML='';return;
+  }
+  // Total filtrado
+  const totalQ=_ventasFiltradas.filter(v=>v.estado==='completada').reduce((s,v)=>s+parseFloat(v.total||0),0);
+  let html='<div style="padding:8px 16px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);">'+total+' resultados — Total: <strong style="color:var(--success)">'+Q(totalQ)+'</strong></div>';
+  html+='<table class="tabla"><thead><tr><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Turno</th><th>Total</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+  data.forEach(v=>{
+    const fecha=v.fecha?new Date(v.fecha).toLocaleString('es-GT'):'—';
+    const cliente=v.clientes?(v.clientes.nombre+' '+(v.clientes.apellidos||'')).trim():'General';
+    html+='<tr>';
+    html+='<td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
+    html+='<td style="font-weight:500">'+cliente+'</td>';
+    html+='<td style="color:var(--muted)">'+(v.usuarios?.nombre||'—')+'</td>';
+    html+='<td style="text-transform:capitalize;color:var(--muted)">'+(v.turno||'—')+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;color:var(--success);font-weight:500">'+Q(v.total)+'</td>';
+    html+='<td><span class="tag '+(ESTADO_TAG[v.estado]||'tag-muted')+'">'+v.estado+'</span></td>';
+    html+='<td><button class="btn-accion ver" onclick="verDetalle(\''+v.id+'\')">Ver</button>';
+    if(puedeAnular&&v.estado==='completada')html+='<button class="btn-accion anular" onclick="abrirAnular(\''+v.id+'\')">Anular</button>';
+    html+='</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tablaVentas').innerHTML=html;
+  // Paginacion
+  let pag='<span style="font-size:11px;color:var(--muted);margin-right:8px;">Pag '+_pagina+' de '+pages+'</span>';
+  pag+='<button class="page-btn" onclick="cambiarPag(-1)" '+((_pagina<=1)?'disabled':'')+'>&#8592;</button>';
+  for(let i=Math.max(1,_pagina-2);i<=Math.min(pages,_pagina+2);i++){
+    pag+='<button class="page-btn '+(i===_pagina?'active':'')+'" onclick="_pagina='+i+';renderVentas()">'+i+'</button>';
+  }
+  pag+='<button class="page-btn" onclick="cambiarPag(1)" '+(_pagina>=pages?'disabled':'')+'>&#8594;</button>';
+  document.getElementById('paginacion').innerHTML=pag;
+}
+
+function cambiarPag(dir){_pagina+=dir;renderVentas();}
+
+// VER DETALLE
+async function verDetalle(id){
+  document.getElementById('detalleTitulo').textContent='Detalle de venta';
+  document.getElementById('detalleBody').innerHTML='<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  document.getElementById('detalleFooter').innerHTML='';
+  document.getElementById('modalDetalle').classList.add('open');
+  const sb=Nav.getSb();
+  const res=await sb.from('ventas')
+    .select('*,clientes(nombre,apellidos,telefono),usuarios(nombre),detalle_venta(cantidad,precio_unitario,variantes(tallas(nombre),colores(nombre),productos(nombre,precio_venta))),pagos_venta(monto,metodos_pago(nombre))')
+    .eq('id',id).single();
+  if(!res.data){document.getElementById('detalleBody').innerHTML='<div class="loading">Error al cargar.</div>';return;}
+  const v=res.data;
+  const cliente=v.clientes?(v.clientes.nombre+' '+(v.clientes.apellidos||'')).trim():'General';
+  const fecha=v.fecha?new Date(v.fecha).toLocaleString('es-GT'):'—';
+  let html='<div class="info-grid">';
+  html+='<div class="info-item"><label>Fecha</label><span style="font-family:DM Mono,monospace;font-size:12px">'+fecha+'</span></div>';
+  html+='<div class="info-item"><label>Estado</label><span class="tag '+(ESTADO_TAG[v.estado]||'tag-muted')+'">'+v.estado+'</span></div>';
+  html+='<div class="info-item"><label>Cliente</label><span>'+cliente+'</span></div>';
+  html+='<div class="info-item"><label>Vendedor</label><span>'+(v.usuarios?.nombre||'—')+'</span></div>';
+  html+='<div class="info-item"><label>Turno</label><span style="text-transform:capitalize">'+(v.turno||'—')+'</span></div>';
+  html+='<div class="info-item"><label>Total</label><span style="color:var(--success);font-weight:600;font-family:DM Mono,monospace">'+Q(v.total)+'</span></div>';
+  html+='</div>';
+  html+='<div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Productos</div>';
+  (v.detalle_venta||[]).forEach(d=>{
+    const prod=d.variantes?.productos?.nombre||'—';
+    const talla=d.variantes?.tallas?.nombre||'';
+    const color=d.variantes?.colores?.nombre||'';
+    html+='<div class="detalle-item"><div><div style="font-weight:500">'+prod+'</div><div style="font-size:11px;color:var(--muted)">T:'+talla+(color?' '+color:'')+'</div></div><div style="text-align:right"><div style="font-family:DM Mono,monospace">x'+d.cantidad+' = '+Q(d.cantidad*d.precio_unitario)+'</div><div style="font-size:11px;color:var(--muted)">'+Q(d.precio_unitario)+' c/u</div></div></div>';
+  });
+  html+='<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);"><div style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Pagos</div>';
+  (v.pagos_venta||[]).forEach(p=>{
+    html+='<div class="pago-item"><span style="color:var(--muted)">'+((p.metodos_pago?.nombre||'—').charAt(0).toUpperCase()+(p.metodos_pago?.nombre||'—').slice(1))+'</span><span style="font-family:DM Mono,monospace;font-weight:500">'+Q(p.monto)+'</span></div>';
+  });
+  html+='<div class="pago-item" style="border-top:1px solid var(--border);margin-top:6px;padding-top:6px;"><strong>TOTAL</strong><strong style="color:var(--success);font-family:DM Mono,monospace">'+Q(v.total)+'</strong></div></div>';
+  document.getElementById('detalleBody').innerHTML=html;
+  if(puedeAnular&&v.estado==='completada'){
+    document.getElementById('detalleFooter').innerHTML='<button class="btn-secondary" onclick="cerrarModal(\'modalDetalle\')">Cerrar</button><button class="btn-danger" onclick="cerrarModal(\'modalDetalle\');abrirAnular(\''+id+'\')">Anular venta</button>';
+  } else {
+    document.getElementById('detalleFooter').innerHTML='<button class="btn-primary" onclick="cerrarModal(\'modalDetalle\')">Cerrar</button>';
+  }
+}
+
+// ANULAR
+function abrirAnular(id){
+  _ventaAnularId=id;
+  document.getElementById('motivoAnular').value='';
+  document.getElementById('modalAnular').classList.add('open');
+}
+async function confirmarAnular(){
+  const motivo=document.getElementById('motivoAnular').value.trim();
+  if(!motivo){Nav.toast('El motivo es obligatorio.','err');return;}
+  const sb=Nav.getSb();
+  const {error}=await sb.from('ventas').update({estado:'anulada',notas_anulacion:motivo}).eq('id',_ventaAnularId);
+  if(error){Nav.toast('Error: '+error.message,'err');return;}
+  Nav.toast('Venta anulada.','ok');
+  cerrarModal('modalAnular');
+  _tabLoaded['historial']=false;_tabLoaded['hoy']=false;
+  loadVentas();loadKPIs();
+}
+
+// VENTAS DE HOY
+async function loadHoy(){
+  const sb=Nav.getSb();
+  const hoy=new Date().toISOString().split('T')[0];
+  const [rV,rRes]=await Promise.all([
+    sb.from('ventas').select('id,total,fecha,turno,estado,clientes(nombre),usuarios(nombre)').eq('estado','completada').gte('fecha',hoy).order('fecha',{ascending:false}),
+    sb.from('vw_ventas_hoy').select('*'),
+  ]);
+  const ventas=rV.data||[];
+  const resumen=rRes.data||[];
+  if(!ventas.length){document.getElementById('tablaHoy').innerHTML='<div class="loading">Sin ventas hoy.</div>';}
+  else{
+    let html='<table class="tabla"><thead><tr><th>Hora</th><th>Cliente</th><th>Vendedor</th><th>Turno</th><th>Total</th><th>Acciones</th></tr></thead><tbody>';
+    ventas.forEach(v=>{
+      const hora=v.fecha?new Date(v.fecha).toLocaleTimeString('es-GT',{hour:'2-digit',minute:'2-digit'}):'—';
+      html+='<tr><td style="font-family:DM Mono,monospace;font-size:12px">'+hora+'</td><td>'+(v.clientes?.nombre||'General')+'</td><td style="color:var(--muted)">'+(v.usuarios?.nombre||'—')+'</td><td style="text-transform:capitalize;color:var(--muted)">'+(v.turno||'—')+'</td><td style="font-family:DM Mono,monospace;color:var(--success);font-weight:500">'+Q(v.total)+'</td><td><button class="btn-accion ver" onclick="verDetalle(\''+v.id+'\')">Ver</button></td></tr>';
+    });
+    html+='</tbody></table>';
+    document.getElementById('tablaHoy').innerHTML=html;
+  }
+  // Resumen vendedores
+  if(resumen.length){
+    const maxT=Math.max(...resumen.map(r=>parseFloat(r.total_vendido||0)),1);
+    const AV=[['rgba(124,106,255,.2)','#b06aff'],['rgba(106,255,180,.15)','#6affb4'],['rgba(255,183,106,.15)','#ffb76a'],['rgba(255,106,106,.15)','#ff6a6a']];
+    let html='<div class="card"><div class="card-hdr"><div class="card-title">Resumen vendedores</div></div><table class="tabla"><thead><tr><th>Vendedor</th><th>Ventas</th><th>Total</th><th>Avance</th></tr></thead><tbody>';
+    resumen.forEach((r,i)=>{
+      const [bg,tc]=AV[i%AV.length];
+      const pct=Math.round(parseFloat(r.total_vendido||0)/maxT*100);
+      html+='<tr><td><div style="display:flex;align-items:center;gap:8px;"><div style="width:26px;height:26px;border-radius:50%;background:'+bg+';color:'+tc+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;">'+(r.vendedor||'?')[0]+'</div>'+r.vendedor+'</div></td><td style="color:var(--muted)">'+(r.num_ventas||0)+'</td><td style="color:var(--success);font-weight:500;font-family:DM Mono,monospace">'+Q(r.total_vendido||0)+'</td><td><div style="display:flex;align-items:center;gap:6px;"><div style="width:60px;height:4px;background:var(--muted2);border-radius:99px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:'+tc+';border-radius:99px;"></div></div><span style="font-size:11px;color:var(--muted)">'+pct+'%</span></div></td></tr>';
+    });
+    html+='</tbody></table></div>';
+    const totalHoy=resumen.reduce((s,r)=>s+parseFloat(r.total_vendido||0),0);
+    const numHoy=resumen.reduce((s,r)=>s+parseInt(r.num_ventas||0),0);
+    html+='<div class="card"><div class="card-hdr"><div class="card-title">Totales del dia</div></div><div style="padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">';
+    html+='<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Transacciones</div><div style="font-family:Syne,sans-serif;font-size:28px;font-weight:700;">'+numHoy+'</div></div>';
+    html+='<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Total vendido</div><div style="font-family:Syne,sans-serif;font-size:22px;font-weight:700;color:var(--success)">'+Q(totalHoy)+'</div></div>';
+    html+='<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Ticket promedio</div><div style="font-family:Syne,sans-serif;font-size:22px;font-weight:700;">'+Q(numHoy>0?totalHoy/numHoy:0)+'</div></div>';
+    html+='</div></div>';
+    document.getElementById('resumenHoyGrid').innerHTML=html;
+    document.getElementById('resumenHoyGrid').style.display='block';
+  }
+}
+
+// COMISIONES
+function initComisiones(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  document.getElementById('comIni').value=ini;
+  document.getElementById('comFin').value=hoy;
+  loadComisiones();
+}
+async function loadComisiones(){
+  document.getElementById('tablaComisiones').innerHTML='<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  const sb=Nav.getSb();
+  const ini=document.getElementById('comIni').value;
+  const fin=document.getElementById('comFin').value;
+  let q=sb.from('comisiones_venta').select('id,monto,porcentaje,pagada,creado_en,usuarios(nombre),ventas(total,fecha)').order('creado_en',{ascending:false});
+  if(ini)q=q.gte('creado_en',ini);
+  if(fin)q=q.lte('creado_en',fin+'T23:59:59');
+  const res=await q.limit(100);
+  const data=res.data||[];
+  if(!data.length){document.getElementById('tablaComisiones').innerHTML='<div class="loading">Sin comisiones en ese periodo.</div>';return;}
+  // Agrupar por vendedor
+  const porVendedor={};
+  data.forEach(c=>{
+    const n=c.usuarios?.nombre||'—';
+    if(!porVendedor[n])porVendedor[n]={nombre:n,total:0,pagada:0,pendiente:0,count:0};
+    porVendedor[n].total+=parseFloat(c.monto||0);
+    porVendedor[n].count++;
+    if(c.pagada)porVendedor[n].pagada+=parseFloat(c.monto||0);
+    else porVendedor[n].pendiente+=parseFloat(c.monto||0);
+  });
+  let html='<table class="tabla"><thead><tr><th>Vendedor</th><th>Ventas</th><th>Total comision</th><th>Pagada</th><th>Pendiente</th></tr></thead><tbody>';
+  Object.values(porVendedor).sort((a,b)=>b.total-a.total).forEach(v=>{
+    html+='<tr><td style="font-weight:500">'+v.nombre+'</td><td style="color:var(--muted)">'+v.count+'</td><td style="font-family:DM Mono,monospace;font-weight:500">'+Q(v.total)+'</td><td style="color:var(--success);font-family:DM Mono,monospace">'+Q(v.pagada)+'</td><td style="color:var(--warning);font-family:DM Mono,monospace">'+Q(v.pendiente)+'</td></tr>';
+  });
+  const totG=Object.values(porVendedor).reduce((s,v)=>s+v.total,0);
+  const totP=Object.values(porVendedor).reduce((s,v)=>s+v.pendiente,0);
+  html+='<tr style="border-top:2px solid var(--border);"><td><strong>TOTAL</strong></td><td></td><td style="font-family:DM Mono,monospace;font-weight:700">'+Q(totG)+'</td><td></td><td style="color:var(--warning);font-family:DM Mono,monospace;font-weight:700">'+Q(totP)+'</td></tr>';
+  html+='</tbody></table>';
+  document.getElementById('tablaComisiones').innerHTML=html;
+}
+
+loadKPIs();
+loadVentas();
+</script>
+</body>
+</html>
