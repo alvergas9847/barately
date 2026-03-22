@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARATELY — Proveedores</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="nav.js"></script>
+<script>document.write(Nav.sidebarCSS())</script>
+<style>
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --accent:#7c6aff;--accent-glow:rgba(124,106,255,0.2);
+  --text:#f0f0f8;--muted:#6b6b80;--muted2:#3a3a50;
+  --success:#6affb4;--danger:#ff6a6a;--warning:#ffb76a;--info:#6ab4ff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.nav-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.nav-hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.fecha-chip{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.btn-logout{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger);}
+.content{padding:24px 28px;flex:1;}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;transition:transform .2s,border-color .2s;}
+.kpi:hover{transform:translateY(-2px);border-color:var(--muted2);}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;width:fit-content;}
+.tab{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.card-body{padding:18px;}
+
+.search-bar{display:flex;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
+.filter-select option{background:var(--surface2);}
+
+.tabla{width:100%;border-collapse:collapse;}
+.tabla th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tabla td{padding:10px 12px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+.tabla tr:last-child td{border-bottom:none;}
+.tabla tr:hover td{background:rgba(255,255,255,0.02);}
+.prov-cell{display:flex;align-items:center;gap:10px;}
+.av{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.btn-accion{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-right:3px;}
+.btn-accion:hover{color:var(--text);border-color:var(--border2);}
+.btn-accion.edit:hover{color:var(--accent);border-color:var(--accent);}
+.btn-accion.hist:hover{color:var(--success);border-color:var(--success);}
+.btn-accion.del:hover{color:var(--danger);border-color:var(--danger);}
+.tag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;}
+.tag-green{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-warn{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-red{background:rgba(255,106,106,.12);color:var(--danger);}
+.tag-blue{background:rgba(106,180,255,.1);color:var(--info);}
+.estado-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease both;}
+.modal-lg{max-width:720px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;transition:color .15s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface);}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field select option{background:var(--surface2);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field textarea{resize:vertical;min-height:70px;}
+
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+
+.compra-item{padding:12px 0;border-bottom:1px solid var(--border);}
+.compra-item:last-child{border-bottom:none;}
+.compra-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.compra-fecha{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.compra-total{font-weight:600;color:var(--success);font-family:'DM Mono',monospace;}
+.compra-det{font-size:11px;color:var(--muted);}
+.compra-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(106,180,255,.1);color:var(--info);margin-top:4px;}
+
+.credito-bar{height:6px;border-radius:99px;background:var(--muted2);overflow:hidden;margin-top:6px;}
+.credito-fill{height:100%;border-radius:99px;background:var(--accent);}
+
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:900px){
+  .nav-main{margin-left:0;}
+  .nav-hamburger{display:block!important;}
+  .content{padding:16px;}
+  .topbar{padding:12px 16px;}
+  .form-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<script>document.write(Nav.sidebarHTML())</script>
+
+<div class="nav-main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="nav-hamburger" onclick="Nav.toggleSidebar()">☰</button>
+      <div class="page-title">Proveedores</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fecha-chip" id="navFecha"></div>
+      <button class="btn-logout" onclick="Nav.logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('proveedores',this)">Proveedores</div>
+      <div class="tab" onclick="switchTab('compras',this)">Historial de compras</div>
+      <div class="tab" onclick="switchTab('credito',this)">Créditos</div>
+    </div>
+
+    <!-- TAB PROVEEDORES -->
+    <div id="tab-proveedores">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Lista de proveedores</div>
+          <div id="btnNuevoProv"></div>
+        </div>
+        <div class="search-bar">
+          <input class="search-input" id="searchProv" placeholder="Buscar por nombre, contacto o NIT..." oninput="filtrarProveedores()"/>
+          <select class="filter-select" id="filtroProv" onchange="filtrarProveedores()">
+            <option value="">Todos</option>
+            <option value="true">Activos</option>
+            <option value="false">Inactivos</option>
+          </select>
+        </div>
+        <div id="tablaProveedores">
+          <div class="loading"><span class="spinner"></span>Cargando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB COMPRAS -->
+    <div id="tab-compras" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Historial de compras a proveedores</div>
+          <div id="btnNuevaCompra"></div>
+        </div>
+        <div class="search-bar">
+          <input class="search-input" id="searchCompra" placeholder="Buscar proveedor..." oninput="filtrarCompras()" style="max-width:300px;"/>
+          <select class="filter-select" id="filtroCompraEstado" onchange="filtrarCompras()">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="recibida">Recibida</option>
+            <option value="parcial">Parcial</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div id="tablaCompras">
+          <div class="loading"><span class="spinner"></span>Cargando...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB CRÉDITO -->
+    <div id="tab-credito" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Estado de crédito por proveedor</div>
+        </div>
+        <div id="tablaCredito">
+          <div class="loading"><span class="spinner"></span>Cargando...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL PROVEEDOR -->
+<div class="modal-bg" id="modalProv">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalProvTitulo">Nuevo proveedor</div>
+      <button class="modal-close" onclick="cerrarModal('modalProv')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Nombre del proveedor *</label>
+          <input type="text" id="pNombre" placeholder="Nombre o razón social"/>
+        </div>
+        <div class="field">
+          <label>Contacto principal</label>
+          <input type="text" id="pContacto" placeholder="Nombre del contacto"/>
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="tel" id="pTelefono" placeholder="12345678" maxlength="8"/>
+        </div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input type="tel" id="pWhatsapp" placeholder="12345678" maxlength="8"/>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="pEmail" placeholder="proveedor@ejemplo.com"/>
+        </div>
+        <div class="field">
+          <label>NIT</label>
+          <input type="text" id="pNit" placeholder="12345678-9" style="font-family:'DM Mono',monospace;"/>
+        </div>
+        <div class="field form-full">
+          <label>Dirección</label>
+          <input type="text" id="pDireccion" placeholder="Dirección del proveedor"/>
+        </div>
+        <div class="field">
+          <label>Días de crédito</label>
+          <input type="number" id="pDiasCredito" placeholder="0" min="0" max="365"/>
+        </div>
+        <div class="field">
+          <label>Límite de crédito (Q)</label>
+          <input type="number" id="pLimiteCredito" placeholder="0.00" step="0.01" min="0"/>
+        </div>
+        <div class="field form-full">
+          <label>Notas</label>
+          <textarea id="pNotas" placeholder="Condiciones, observaciones, productos que maneja..."></textarea>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="pActivo">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalProv')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarProv" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPRA -->
+<div class="modal-bg" id="modalCompra">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalCompraTitulo">Registrar compra</div>
+      <button class="modal-close" onclick="cerrarModal('modalCompra')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full">
+          <label>Proveedor *</label>
+          <select id="cProveedor"></select>
+        </div>
+        <div class="field">
+          <label>Tipo de orden *</label>
+          <select id="cTipo">
+            <option value="mayorista">Mayorista</option>
+            <option value="consignacion">Consignación</option>
+            <option value="lote">Lote</option>
+            <option value="directo">Directo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Total (Q) *</label>
+          <input type="number" id="cTotal" placeholder="0.00" step="0.01" min="0"/>
+        </div>
+        <div class="field">
+          <label>Fecha estimada entrega</label>
+          <input type="date" id="cFechaEntrega"/>
+        </div>
+        <div class="field">
+          <label>Método de pago</label>
+          <select id="cMetodoPago">
+            <option value="efectivo">Efectivo</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="credito">Crédito</option>
+            <option value="cheque">Cheque</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="cEstado">
+            <option value="pendiente">Pendiente</option>
+            <option value="recibida">Recibida</option>
+            <option value="parcial">Parcial</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+        </div>
+        <div class="field form-full">
+          <label>Notas de la compra</label>
+          <textarea id="cNotas" placeholder="Productos incluidos, condiciones, etc."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalCompra')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarCompra" onclick="guardarCompra()">Registrar compra</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALLE PROVEEDOR -->
+<div class="modal-bg" id="modalDetalle">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div class="modal-title" id="detalleTitulo">Detalle del proveedor</div>
+      <button class="modal-close" onclick="cerrarModal('modalDetalle')">✕</button>
+    </div>
+    <div class="modal-body" id="detalleBody">
+      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _proveedores  = [];
+let _compras      = [];
+let _editandoProvId = null;
+let _tabActual    = 'proveedores';
+let _tabLoaded    = {};
+
+const AV_COLORS = [
+  ['rgba(124,106,255,.2)','#b06aff'],
+  ['rgba(106,255,180,.15)','#6affb4'],
+  ['rgba(255,183,106,.15)','#ffb76a'],
+  ['rgba(255,106,106,.15)','#ff6a6a'],
+  ['rgba(106,180,255,.15)','#6ab4ff'],
+];
+
+const Q = v => `Q${parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── INICIO ────────────────────────────────────────────────────
+Nav.init('proveedores');
+
+const puedeEditar = Nav.puede('puedeEditar');
+const esAdmin     = Nav.getRol() === 'admin';
+
+// ── TABS ──────────────────────────────────────────────────────
+function switchTab(id, el){
+  ['proveedores','compras','credito'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? '' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if(el) el.classList.add('active');
+  _tabActual = id;
+  if(!_tabLoaded[id]){ _tabLoaded[id]=true; loadTab(id); }
+}
+
+function loadTab(id){
+  if(id==='compras') loadCompras();
+  if(id==='credito') loadCredito();
+}
+
+// ── KPIs ──────────────────────────────────────────────────────
+async function loadKPIs(){
+  const sb = Nav.getSb();
+  const [resT, resA, resC, resP] = await Promise.all([
+    sb.from('proveedores').select('id',{count:'exact'}),
+    sb.from('proveedores').select('id',{count:'exact'}).eq('activo',true),
+    sb.from('compras').select('total').eq('estado','pendiente'),
+    sb.from('compras').select('total').gte('fecha_orden',
+      new Date(Date.now()-30*864e5).toISOString()),
+  ]);
+  const total    = resT.count||0;
+  const activos  = resA.count||0;
+  const pendiente= (resC.data||[]).reduce((s,c)=>s+parseFloat(c.total||0),0);
+  const mesTotal = (resP.data||[]).reduce((s,c)=>s+parseFloat(c.total||0),0);
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">Total proveedores</div>
+      <div class="kpi-value">${total}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Proveedores activos</div>
+      <div class="kpi-value" style="color:var(--success)">${activos}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Compras pendientes</div>
+      <div class="kpi-value" style="color:var(--warning)">${Q(pendiente)}</div>
+      <div class="kpi-sub">Por recibir</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Compras este mes</div>
+      <div class="kpi-value" style="color:var(--accent)">${Q(mesTotal)}</div>
+      <div class="kpi-sub">Últimos 30 días</div>
+    </div>`;
+}
+
+// ── PROVEEDORES ───────────────────────────────────────────────
+async function loadProveedores(){
+  if(esAdmin){
+    document.getElementById('btnNuevoProv').innerHTML =
+      `<button class="btn-primary" onclick="abrirModalProv()">+ Nuevo proveedor</button>`;
+  }
+  const sb  = Nav.getSb();
+  const res = await sb.from('proveedores')
+    .select('id,nombre,contacto,telefono,whatsapp,nit,email,dias_credito,limite_credito,activo,notas')
+    .order('nombre');
+  _proveedores = res.data||[];
+  renderProveedores(_proveedores);
+  cargarSelectProv();
+}
+
+function filtrarProveedores(){
+  const txt = document.getElementById('searchProv').value.toLowerCase();
+  const est = document.getElementById('filtroProv').value;
+  const fil = _proveedores.filter(p => {
+    const matchTxt = !txt ||
+      p.nombre?.toLowerCase().includes(txt) ||
+      p.contacto?.toLowerCase().includes(txt) ||
+      p.nit?.includes(txt);
+    const matchEst = est==='' || String(p.activo)===est;
+    return matchTxt && matchEst;
+  });
+  renderProveedores(fil);
+}
+
+function renderProveedores(data){
+  if(!data.length){
+    document.getElementById('tablaProveedores').innerHTML='<div class="loading">Sin proveedores.</div>';
+    return;
+  }
+  document.getElementById('tablaProveedores').innerHTML = `
+    <table class="tabla">
+      <thead><tr>
+        <th>Proveedor</th><th>Contacto</th><th>Teléfono</th>
+        <th>NIT</th><th>Crédito</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${data.map((p,i)=>{
+        const [bg,tc] = AV_COLORS[i%AV_COLORS.length];
+        const credTag = p.dias_credito > 0
+          ? `<span class="tag tag-blue">${p.dias_credito} días</span>`
+          : `<span class="tag" style="background:var(--surface2);color:var(--muted)">Contado</span>`;
+        return `<tr>
+          <td><div class="prov-cell">
+            <div class="av" style="background:${bg};color:${tc}">${(p.nombre||'?')[0].toUpperCase()}</div>
+            <div>
+              <div style="font-weight:500">${p.nombre}</div>
+              <div style="font-size:11px;color:var(--muted)">${p.email||''}</div>
+            </div>
+          </div></td>
+          <td style="color:var(--muted)">${p.contacto||'—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${p.telefono||'—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${p.nit||'—'}</td>
+          <td>${credTag}</td>
+          <td>
+            <span class="estado-dot" style="background:${p.activo?'var(--success)':'var(--muted)'}"></span>
+            ${p.activo?'Activo':'Inactivo'}
+          </td>
+          <td>
+            <button class="btn-accion hist" onclick="verDetalle('${p.id}','${p.nombre.replace(/'/g,"\\'")}')">Ver</button>
+            ${esAdmin?`
+            <button class="btn-accion edit" onclick="editarProv('${p.id}')">Editar</button>
+            <button class="btn-accion del" onclick="toggleProv('${p.id}',${p.activo},'${p.nombre.replace(/'/g,"\\'")}')">
+              ${p.activo?'Desactivar':'Activar'}
+            </button>`:''}
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+// ── MODAL PROVEEDOR ───────────────────────────────────────────
+function abrirModalProv(){
+  _editandoProvId = null;
+  document.getElementById('modalProvTitulo').textContent = 'Nuevo proveedor';
+  ['pNombre','pContacto','pTelefono','pWhatsapp','pEmail','pNit','pDireccion','pNotas'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('pDiasCredito').value='0';
+  document.getElementById('pLimiteCredito').value='0';
+  document.getElementById('pActivo').value='true';
+  document.getElementById('modalProv').classList.add('open');
+}
+
+async function editarProv(id){
+  const sb  = Nav.getSb();
+  const res = await sb.from('proveedores').select('*').eq('id',id).single();
+  if(!res.data) return;
+  const p = res.data;
+  _editandoProvId = id;
+  document.getElementById('modalProvTitulo').textContent = 'Editar proveedor';
+  document.getElementById('pNombre').value        = p.nombre||'';
+  document.getElementById('pContacto').value      = p.contacto||'';
+  document.getElementById('pTelefono').value      = p.telefono||'';
+  document.getElementById('pWhatsapp').value      = p.whatsapp||'';
+  document.getElementById('pEmail').value         = p.email||'';
+  document.getElementById('pNit').value           = p.nit||'';
+  document.getElementById('pDireccion').value     = p.direccion||'';
+  document.getElementById('pNotas').value         = p.notas||'';
+  document.getElementById('pDiasCredito').value   = p.dias_credito||0;
+  document.getElementById('pLimiteCredito').value = p.limite_credito||0;
+  document.getElementById('pActivo').value        = p.activo?'true':'false';
+  document.getElementById('modalProv').classList.add('open');
+}
+
+async function guardarProveedor(){
+  const nombre = document.getElementById('pNombre').value.trim();
+  if(!nombre){ Nav.toast('El nombre es obligatorio.','err'); return; }
+  const btn = document.getElementById('btnGuardarProv');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const datos = {
+    nombre,
+    contacto:       document.getElementById('pContacto').value.trim()||null,
+    telefono:       document.getElementById('pTelefono').value.trim()||null,
+    whatsapp:       document.getElementById('pWhatsapp').value.trim()||null,
+    email:          document.getElementById('pEmail').value.trim()||null,
+    nit:            document.getElementById('pNit').value.trim()||null,
+    direccion:      document.getElementById('pDireccion').value.trim()||null,
+    notas:          document.getElementById('pNotas').value.trim()||null,
+    dias_credito:   parseInt(document.getElementById('pDiasCredito').value)||0,
+    limite_credito: parseFloat(document.getElementById('pLimiteCredito').value)||0,
+    activo:         document.getElementById('pActivo').value==='true',
+  };
+  try {
+    const sb = Nav.getSb();
+    let error;
+    if(_editandoProvId){
+      ({error} = await sb.from('proveedores').update(datos).eq('id',_editandoProvId));
+    } else {
+      ({error} = await sb.from('proveedores').insert(datos));
+    }
+    if(error) throw error;
+    Nav.toast(_editandoProvId?'Proveedor actualizado.':'Proveedor creado.','ok');
+    cerrarModal('modalProv');
+    _tabLoaded['proveedores']=false; loadProveedores(); loadKPIs();
+  } catch(e){
+    Nav.toast('Error: '+(e.message||'intenta de nuevo'),'err');
+  }
+  btn.disabled=false; btn.textContent='Guardar';
+}
+
+async function toggleProv(id, activo, nombre){
+  if(!confirm(`¿${activo?'Desactivar':'Activar'} a "${nombre}"?`)) return;
+  const sb = Nav.getSb();
+  const {error} = await sb.from('proveedores').update({activo:!activo}).eq('id',id);
+  if(error){ Nav.toast('Error al actualizar.','err'); return; }
+  Nav.toast(`Proveedor ${activo?'desactivado':'activado'}.`,'ok');
+  _tabLoaded['proveedores']=false; loadProveedores();
+}
+
+// ── COMPRAS ───────────────────────────────────────────────────
+async function loadCompras(){
+  if(esAdmin){
+    document.getElementById('btnNuevaCompra').innerHTML =
+      `<button class="btn-primary" onclick="abrirModalCompra()">+ Registrar compra</button>`;
+  }
+  const sb  = Nav.getSb();
+  const res = await sb.from('compras')
+    .select('id,tipo_orden,total,estado,fecha_orden,fecha_entrega_estimada,notas,proveedores(nombre)')
+    .order('fecha_orden',{ascending:false})
+    .limit(50);
+  _compras = res.data||[];
+  renderCompras(_compras);
+}
+
+function filtrarCompras(){
+  const txt = document.getElementById('searchCompra').value.toLowerCase();
+  const est = document.getElementById('filtroCompraEstado').value;
+  const fil = _compras.filter(c => {
+    const matchTxt = !txt || c.proveedores?.nombre?.toLowerCase().includes(txt);
+    const matchEst = !est || c.estado===est;
+    return matchTxt && matchEst;
+  });
+  renderCompras(fil);
+}
+
+const ESTADO_COLOR = {
+  pendiente: 'tag-warn',
+  recibida:  'tag-green',
+  parcial:   'tag-blue',
+  cancelada: 'tag-red',
+};
+
+function renderCompras(data){
+  if(!data.length){
+    document.getElementById('tablaCompras').innerHTML='<div class="loading">Sin compras registradas.</div>';
+    return;
+  }
+  document.getElementById('tablaCompras').innerHTML = `
+    <table class="tabla">
+      <thead><tr>
+        <th>Proveedor</th><th>Tipo</th><th>Total</th>
+        <th>Estado</th><th>Fecha orden</th><th>Entrega est.</th><th>Notas</th>
+      </tr></thead>
+      <tbody>${data.map(c=>`<tr>
+        <td style="font-weight:500">${c.proveedores?.nombre||'—'}</td>
+        <td style="text-transform:capitalize;color:var(--muted)">${c.tipo_orden||'—'}</td>
+        <td style="font-family:'DM Mono',monospace;color:var(--success);font-weight:500">${Q(c.total)}</td>
+        <td><span class="tag ${ESTADO_COLOR[c.estado]||''}">${c.estado||'—'}</span></td>
+        <td style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
+          ${c.fecha_orden?new Date(c.fecha_orden).toLocaleDateString('es-GT'):'—'}
+        </td>
+        <td style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
+          ${c.fecha_entrega_estimada?new Date(c.fecha_entrega_estimada).toLocaleDateString('es-GT'):'—'}
+        </td>
+        <td style="font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+          ${c.notas||'—'}
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+}
+
+function cargarSelectProv(){
+  const sel = document.getElementById('cProveedor');
+  sel.innerHTML = _proveedores
+    .filter(p=>p.activo)
+    .map(p=>`<option value="${p.id}">${p.nombre}</option>`)
+    .join('');
+}
+
+function abrirModalCompra(){
+  document.getElementById('modalCompraTitulo').textContent='Registrar compra';
+  ['cTotal','cNotas'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cFechaEntrega').value='';
+  document.getElementById('cTipo').value='mayorista';
+  document.getElementById('cMetodoPago').value='efectivo';
+  document.getElementById('cEstado').value='pendiente';
+  document.getElementById('modalCompra').classList.add('open');
+}
+
+async function guardarCompra(){
+  const provId = document.getElementById('cProveedor').value;
+  const total  = parseFloat(document.getElementById('cTotal').value||0);
+  if(!provId){ Nav.toast('Selecciona un proveedor.','err'); return; }
+  if(!total)  { Nav.toast('El total es obligatorio.','err'); return; }
+  const btn = document.getElementById('btnGuardarCompra');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const datos = {
+    proveedor_id:          provId,
+    tipo_orden:            document.getElementById('cTipo').value,
+    total,
+    estado:                document.getElementById('cEstado').value,
+    fecha_entrega_estimada:document.getElementById('cFechaEntrega').value||null,
+    notas:                 document.getElementById('cNotas').value.trim()||null,
+  };
+  try {
+    const sb = Nav.getSb();
+    const {error} = await sb.from('compras').insert(datos);
+    if(error) throw error;
+    Nav.toast('Compra registrada.','ok');
+    cerrarModal('modalCompra');
+    _tabLoaded['compras']=false; loadCompras(); loadKPIs();
+  } catch(e){
+    Nav.toast('Error: '+(e.message||'intenta de nuevo'),'err');
+  }
+  btn.disabled=false; btn.textContent='Registrar compra';
+}
+
+// ── CRÉDITO ───────────────────────────────────────────────────
+async function loadCredito(){
+  const sb  = Nav.getSb();
+  const res = await sb.from('proveedores')
+    .select('id,nombre,dias_credito,limite_credito,activo')
+    .eq('activo',true)
+    .gt('dias_credito',0)
+    .order('nombre');
+  const provs = res.data||[];
+
+  if(!provs.length){
+    document.getElementById('tablaCredito').innerHTML='<div class="loading">Sin proveedores con crédito configurado.</div>';
+    return;
+  }
+
+  // Para cada proveedor con crédito obtener compras pendientes
+  const sb2 = Nav.getSb();
+  const resCom = await sb2.from('compras')
+    .select('proveedor_id,total')
+    .eq('estado','pendiente');
+  const pendMap = {};
+  (resCom.data||[]).forEach(c=>{
+    pendMap[c.proveedor_id] = (pendMap[c.proveedor_id]||0) + parseFloat(c.total||0);
+  });
+
+  document.getElementById('tablaCredito').innerHTML = `
+    <table class="tabla">
+      <thead><tr>
+        <th>Proveedor</th><th>Días crédito</th><th>Límite</th>
+        <th>Usado (pendiente)</th><th>Disponible</th><th>Uso</th>
+      </tr></thead>
+      <tbody>${provs.map((p,i)=>{
+        const [bg,tc] = AV_COLORS[i%AV_COLORS.length];
+        const limite  = parseFloat(p.limite_credito||0);
+        const usado   = pendMap[p.id]||0;
+        const disp    = Math.max(0, limite - usado);
+        const pct     = limite > 0 ? Math.min(100,Math.round(usado/limite*100)) : 0;
+        const color   = pct > 80 ? 'var(--danger)' : pct > 50 ? 'var(--warning)' : 'var(--success)';
+        return `<tr>
+          <td><div class="prov-cell">
+            <div class="av" style="background:${bg};color:${tc}">${(p.nombre||'?')[0].toUpperCase()}</div>
+            <span style="font-weight:500">${p.nombre}</span>
+          </div></td>
+          <td style="font-family:'DM Mono',monospace">${p.dias_credito} días</td>
+          <td style="font-family:'DM Mono',monospace">${limite>0?Q(limite):'Sin límite'}</td>
+          <td style="color:var(--warning);font-family:'DM Mono',monospace">${Q(usado)}</td>
+          <td style="color:${color};font-family:'DM Mono',monospace">${limite>0?Q(disp):'—'}</td>
+          <td style="min-width:100px">
+            ${limite>0?`
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="credito-bar" style="flex:1"><div class="credito-fill" style="width:${pct}%;background:${color}"></div></div>
+              <span style="font-size:11px;color:${color};font-family:'DM Mono',monospace">${pct}%</span>
+            </div>`:'—'}
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+// ── DETALLE PROVEEDOR ─────────────────────────────────────────
+async function verDetalle(id, nombre){
+  document.getElementById('detalleTitulo').textContent = nombre;
+  document.getElementById('modalDetalle').classList.add('open');
+  document.getElementById('detalleBody').innerHTML = '<div class="loading"><span class="spinner"></span>Cargando...</div>';
+
+  const sb  = Nav.getSb();
+  const [resP, resC] = await Promise.all([
+    sb.from('proveedores').select('*').eq('id',id).single(),
+    sb.from('compras').select('*').eq('proveedor_id',id).order('fecha_orden',{ascending:false}).limit(10),
+  ]);
+
+  const p    = resP.data||{};
+  const comp = resC.data||[];
+  const totalComp = comp.reduce((s,c)=>s+parseFloat(c.total||0),0);
+
+  document.getElementById('detalleBody').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px;padding:14px;background:var(--surface2);border-radius:10px;">
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Contacto</div>
+        <div style="font-size:13px">${p.contacto||'—'}</div></div>
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Teléfono</div>
+        <div style="font-size:13px;font-family:'DM Mono',monospace">${p.telefono||'—'}</div></div>
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Crédito</div>
+        <div style="font-size:13px">${p.dias_credito?p.dias_credito+' días':'Contado'}</div></div>
+      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Total comprado</div>
+        <div style="font-size:13px;font-weight:600;color:var(--success)">${Q(totalComp)}</div></div>
+    </div>
+    ${p.notas?`<div style="padding:12px;background:var(--surface2);border-radius:8px;font-size:13px;color:var(--muted);margin-bottom:20px;border-left:3px solid var(--accent)">${p.notas}</div>`:''}
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:12px">Últimas compras</div>
+    ${comp.length ? comp.map(c=>`
+      <div class="compra-item">
+        <div class="compra-hdr">
+          <span class="compra-fecha">${c.fecha_orden?new Date(c.fecha_orden).toLocaleDateString('es-GT'):'—'}</span>
+          <span class="compra-total">${Q(c.total)}</span>
+        </div>
+        <div class="compra-det" style="display:flex;align-items:center;gap:8px;">
+          <span class="tag ${ESTADO_COLOR[c.estado]||''}">${c.estado}</span>
+          <span style="text-transform:capitalize">${c.tipo_orden||''}</span>
+        </div>
+        ${c.notas?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${c.notas}</div>`:''}
+      </div>`).join('') : '<div style="color:var(--muted);font-size:13px">Sin compras registradas.</div>'}`;
+}
+
+// ── CARGA INICIAL ─────────────────────────────────────────────
+loadKPIs();
+loadProveedores();
+</script>
+</body>
+</html>
