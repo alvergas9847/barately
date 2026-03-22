@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARATELY — Clientes</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="nav.js"></script>
+<script>document.write(Nav.sidebarCSS())</script>
+<style>
+:root{
+  --bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --accent:#7c6aff;--accent-glow:rgba(124,106,255,0.2);
+  --text:#f0f0f8;--muted:#6b6b80;--muted2:#3a3a50;
+  --success:#6affb4;--danger:#ff6a6a;--warning:#ffb76a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.nav-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.nav-hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.fecha-chip{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.btn-logout{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger);}
+.content{padding:24px 28px;flex:1;}
+
+/* ── KPIS ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;transition:transform .2s,border-color .2s;}
+.kpi:hover{transform:translateY(-2px);border-color:var(--muted2);}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.card-body{padding:18px;}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
+.filter-select option{background:var(--surface2);}
+
+/* ── TABLA ── */
+.tabla{width:100%;border-collapse:collapse;}
+.tabla th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tabla td{padding:10px 12px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+.tabla tr:last-child td{border-bottom:none;}
+.tabla tr:hover td{background:rgba(255,255,255,0.02);}
+.cli-cell{display:flex;align-items:center;gap:10px;}
+.av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.btn-accion{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-right:3px;}
+.btn-accion:hover{color:var(--text);border-color:var(--border2);}
+.btn-accion.edit:hover{color:var(--accent);border-color:var(--accent);}
+.btn-accion.hist:hover{color:var(--success);border-color:var(--success);}
+.btn-accion.del:hover{color:var(--danger);border-color:var(--danger);}
+.estado-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+
+/* ── MODAL ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease both;}
+.modal-lg{max-width:700px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;transition:color .15s;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface);}
+
+/* ── FORM ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field select option{background:var(--surface2);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field textarea{resize:vertical;min-height:70px;}
+
+/* ── BOTONES ── */
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s,box-shadow .2s;}
+.btn-primary:hover{opacity:.88;box-shadow:0 4px 20px var(--accent-glow);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+
+/* ── HISTORIAL ── */
+.compra-item{padding:12px 0;border-bottom:1px solid var(--border);}
+.compra-item:last-child{border-bottom:none;}
+.compra-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.compra-fecha{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.compra-total{font-weight:600;color:var(--success);font-family:'DM Mono',monospace;}
+.compra-det{font-size:11px;color:var(--muted);line-height:1.5;}
+.compra-metodo{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;background:rgba(124,106,255,.12);color:var(--accent);margin-top:4px;}
+
+/* ── COMENTARIOS ── */
+.comentario-item{background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:8px;}
+.comentario-meta{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.comentario-txt{font-size:13px;line-height:1.5;}
+
+/* ── TAGS ── */
+.tag{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:99px;}
+.tag-green{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-warn{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-red{background:rgba(255,106,106,.12);color:var(--danger);}
+
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:900px){
+  .nav-main{margin-left:0;}
+  .nav-hamburger{display:block!important;}
+  .content{padding:16px;}
+  .topbar{padding:12px 16px;}
+  .form-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<script>document.write(Nav.sidebarHTML())</script>
+
+<div class="nav-main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="nav-hamburger" onclick="Nav.toggleSidebar()">☰</button>
+      <div class="page-title">Clientes</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fecha-chip" id="navFecha"></div>
+      <button class="btn-logout" onclick="Nav.logout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- KPIs -->
+    <div class="kpi-grid" id="kpiGrid">
+      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    </div>
+
+    <!-- Tabla clientes -->
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">Todos los clientes</div>
+        <div id="btnNuevo"></div>
+      </div>
+      <div class="search-bar">
+        <input class="search-input" id="searchInput" placeholder="Buscar por nombre, teléfono o NIT..." oninput="filtrar()"/>
+        <select class="filter-select" id="filtroEstado" onchange="filtrar()">
+          <option value="">Todos</option>
+          <option value="true">Activos</option>
+          <option value="false">Inactivos</option>
+        </select>
+      </div>
+      <div id="tablaClientes">
+        <div class="loading"><span class="spinner"></span>Cargando...</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL CLIENTE -->
+<div class="modal-bg" id="modalCliente">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalTitulo">Nuevo cliente</div>
+      <button class="modal-close" onclick="cerrarModal('modalCliente')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field">
+          <label>Nombre *</label>
+          <input type="text" id="cNombre" placeholder="Nombre del cliente"/>
+        </div>
+        <div class="field">
+          <label>Apellidos</label>
+          <input type="text" id="cApellidos" placeholder="Apellidos"/>
+        </div>
+        <div class="field">
+          <label>Teléfono</label>
+          <input type="text" id="cTelefono" placeholder="12345678"/>
+        </div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input type="text" id="cWhatsapp" placeholder="12345678"/>
+        </div>
+        <div class="field">
+          <label>NIT</label>
+          <input type="text" id="cNit" placeholder="12345678-9" style="font-family:'DM Mono',monospace;"/>
+        </div>
+        <div class="field">
+          <label>DPI</label>
+          <input type="text" id="cDpi" placeholder="0000 00000 0000" style="font-family:'DM Mono',monospace;"/>
+        </div>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="cEmail" placeholder="correo@ejemplo.com"/>
+        </div>
+        <div class="field">
+          <label>Fecha de nacimiento</label>
+          <input type="date" id="cNacimiento"/>
+        </div>
+        <div class="field form-full">
+          <label>Dirección</label>
+          <input type="text" id="cDireccion" placeholder="Dirección del cliente"/>
+        </div>
+        <div class="field form-full">
+          <label>Notas internas</label>
+          <textarea id="cNotas" placeholder="Notas sobre el cliente (tallas frecuentes, preferencias, etc.)"></textarea>
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select id="cActivo">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalCliente')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardar" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIAL -->
+<div class="modal-bg" id="modalHistorial">
+  <div class="modal modal-lg">
+    <div class="modal-hdr">
+      <div class="modal-title" id="histTitulo">Historial del cliente</div>
+      <button class="modal-close" onclick="cerrarModal('modalHistorial')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Info cliente -->
+      <div id="histInfo" style="margin-bottom:20px;padding:14px;background:var(--surface2);border-radius:10px;"></div>
+
+      <!-- Tabs historial -->
+      <div style="display:flex;gap:4px;background:var(--surface2);border-radius:8px;padding:3px;margin-bottom:16px;width:fit-content;">
+        <div class="htab active" onclick="switchHistTab('compras',this)" style="padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;background:var(--accent);color:#fff;">Compras</div>
+        <div class="htab" onclick="switchHistTab('comentarios',this)" style="padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--muted);">Notas internas</div>
+      </div>
+
+      <div id="histCompras"></div>
+      <div id="histComentarios" style="display:none;">
+        <div id="listaComentarios"></div>
+        <div style="margin-top:12px;">
+          <textarea id="nuevoComentario" placeholder="Agregar nota interna..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;resize:vertical;min-height:80px;"></textarea>
+          <button class="btn-primary" style="margin-top:8px;" onclick="guardarComentario()">Guardar nota</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Variables ─────────────────────────────────────────────────
+let _clientes   = [];
+let _editandoId = null;
+let _histClienteId = null;
+
+const AV_COLORS = [
+  ['rgba(124,106,255,.2)','#b06aff'],
+  ['rgba(106,255,180,.15)','#6affb4'],
+  ['rgba(255,183,106,.15)','#ffb76a'],
+  ['rgba(255,106,106,.15)','#ff6a6a'],
+  ['rgba(255,255,255,.06)','#6b6b80'],
+];
+
+const Q = v => `Q${parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// ── INICIO ────────────────────────────────────────────────────
+Nav.init('clientes');
+
+// Botón nuevo — solo admin/encargado
+if(Nav.puede('puedeEditar')){
+  document.getElementById('btnNuevo').innerHTML =
+    `<button class="btn-primary" onclick="abrirModalNuevo()">+ Nuevo cliente</button>`;
+}
+
+// ── KPIs ──────────────────────────────────────────────────────
+async function loadKPIs(){
+  const sb = Nav.getSb();
+  const [resT, resA, resM, resH] = await Promise.all([
+    sb.from('clientes').select('id', {count:'exact'}),
+    sb.from('clientes').select('id', {count:'exact'}).eq('activo',true),
+    sb.from('ventas').select('cliente_id').gte('fecha', new Date().toISOString().split('T')[0]),
+    sb.from('ventas').select('cliente_id').gte('fecha', new Date(Date.now()-30*864e5).toISOString()),
+  ]);
+  const total    = resT.count || 0;
+  const activos  = resA.count || 0;
+  const hoy      = new Set((resM.data||[]).map(v=>v.cliente_id)).size;
+  const mes      = new Set((resH.data||[]).map(v=>v.cliente_id)).size;
+
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">Total clientes</div>
+      <div class="kpi-value">${total}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Clientes activos</div>
+      <div class="kpi-value" style="color:var(--success)">${activos}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Compraron hoy</div>
+      <div class="kpi-value" style="color:var(--accent)">${hoy}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Activos este mes</div>
+      <div class="kpi-value" style="color:var(--warning)">${mes}</div>
+      <div class="kpi-sub">Últimos 30 días</div>
+    </div>`;
+}
+
+// ── TABLA CLIENTES ────────────────────────────────────────────
+async function loadClientes(){
+  const sb = Nav.getSb();
+  const res = await sb.from('clientes')
+    .select('id,nombre,apellidos,telefono,whatsapp,nit,email,activo,creado_en')
+    .order('nombre');
+  _clientes = res.data || [];
+  renderClientes(_clientes);
+}
+
+function filtrar(){
+  const txt = document.getElementById('searchInput').value.toLowerCase();
+  const est = document.getElementById('filtroEstado').value;
+  const fil = _clientes.filter(c => {
+    const matchTxt = !txt ||
+      c.nombre?.toLowerCase().includes(txt) ||
+      c.apellidos?.toLowerCase().includes(txt) ||
+      c.telefono?.includes(txt) ||
+      c.nit?.includes(txt);
+    const matchEst = est==='' || String(c.activo)===est;
+    return matchTxt && matchEst;
+  });
+  renderClientes(fil);
+}
+
+function renderClientes(data){
+  if(!data.length){
+    document.getElementById('tablaClientes').innerHTML='<div class="loading">Sin clientes encontrados.</div>';
+    return;
+  }
+  const puedeEditar = Nav.puede('puedeEditar');
+  document.getElementById('tablaClientes').innerHTML = `
+    <table class="tabla">
+      <thead><tr>
+        <th>Cliente</th><th>Teléfono</th><th>WhatsApp</th>
+        <th>NIT</th><th>Estado</th><th>Acciones</th>
+      </tr></thead>
+      <tbody>${data.map((c,i) => {
+        const [bg,tc] = AV_COLORS[i % AV_COLORS.length];
+        const nombre  = `${c.nombre||''} ${c.apellidos||''}`.trim();
+        return `<tr>
+          <td><div class="cli-cell">
+            <div class="av" style="background:${bg};color:${tc}">${(c.nombre||'?')[0].toUpperCase()}</div>
+            <div>
+              <div style="font-weight:500">${nombre}</div>
+              <div style="font-size:11px;color:var(--muted)">${c.email||''}</div>
+            </div>
+          </div></td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${c.telefono||'—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${c.whatsapp||'—'}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px">${c.nit||'—'}</td>
+          <td>
+            <span class="estado-dot" style="background:${c.activo?'var(--success)':'var(--muted)'}"></span>
+            ${c.activo?'Activo':'Inactivo'}
+          </td>
+          <td>
+            <button class="btn-accion hist" onclick="verHistorial('${c.id}','${nombre.replace(/'/g,"\\'")}')">Historial</button>
+            ${puedeEditar?`
+            <button class="btn-accion edit" onclick="editarCliente('${c.id}')">Editar</button>
+            <button class="btn-accion del" onclick="toggleCliente('${c.id}',${c.activo},'${nombre.replace(/'/g,"\\'")}')">
+              ${c.activo?'Desactivar':'Activar'}
+            </button>`:''}
+          </td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+// ── MODAL CLIENTE ─────────────────────────────────────────────
+function abrirModalNuevo(){
+  _editandoId = null;
+  document.getElementById('modalTitulo').textContent = 'Nuevo cliente';
+  ['cNombre','cApellidos','cTelefono','cWhatsapp','cNit','cDpi','cEmail','cDireccion','cNotas'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('cNacimiento').value='';
+  document.getElementById('cActivo').value='true';
+  document.getElementById('modalCliente').classList.add('open');
+}
+
+async function editarCliente(id){
+  const sb  = Nav.getSb();
+  const res = await sb.from('clientes').select('*').eq('id',id).single();
+  if(!res.data) return;
+  const c = res.data;
+  _editandoId = id;
+  document.getElementById('modalTitulo').textContent = 'Editar cliente';
+  document.getElementById('cNombre').value    = c.nombre||'';
+  document.getElementById('cApellidos').value = c.apellidos||'';
+  document.getElementById('cTelefono').value  = c.telefono||'';
+  document.getElementById('cWhatsapp').value  = c.whatsapp||'';
+  document.getElementById('cNit').value       = c.nit||'';
+  document.getElementById('cDpi').value       = c.dpi||'';
+  document.getElementById('cEmail').value     = c.email||'';
+  document.getElementById('cDireccion').value = c.direccion||'';
+  document.getElementById('cNotas').value     = c.notas||'';
+  document.getElementById('cNacimiento').value= c.fecha_nacimiento||'';
+  document.getElementById('cActivo').value    = c.activo?'true':'false';
+  document.getElementById('modalCliente').classList.add('open');
+}
+
+async function guardarCliente(){
+  const nombre = document.getElementById('cNombre').value.trim();
+  if(!nombre){ Nav.toast('El nombre es obligatorio.','err'); return; }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled=true; btn.textContent='Guardando...';
+
+  const datos = {
+    nombre,
+    apellidos:        document.getElementById('cApellidos').value.trim()||null,
+    telefono:         document.getElementById('cTelefono').value.trim()||null,
+    whatsapp:         document.getElementById('cWhatsapp').value.trim()||null,
+    nit:              document.getElementById('cNit').value.trim()||null,
+    dpi:              document.getElementById('cDpi').value.trim()||null,
+    email:            document.getElementById('cEmail').value.trim()||null,
+    direccion:        document.getElementById('cDireccion').value.trim()||null,
+    notas:            document.getElementById('cNotas').value.trim()||null,
+    fecha_nacimiento: document.getElementById('cNacimiento').value||null,
+    activo:           document.getElementById('cActivo').value==='true',
+  };
+
+  try {
+    const sb = Nav.getSb();
+    let error;
+    if(_editandoId){
+      ({error} = await sb.from('clientes').update(datos).eq('id',_editandoId));
+    } else {
+      ({error} = await sb.from('clientes').insert(datos));
+    }
+    if(error) throw error;
+    Nav.toast(_editandoId?'Cliente actualizado.':'Cliente creado.','ok');
+    cerrarModal('modalCliente');
+    loadClientes(); loadKPIs();
+  } catch(e){
+    Nav.toast('Error: '+(e.message||'intenta de nuevo'),'err');
+  }
+  btn.disabled=false; btn.textContent='Guardar';
+}
+
+async function toggleCliente(id, activo, nombre){
+  if(!confirm(`¿${activo?'Desactivar':'Activar'} a "${nombre}"?`)) return;
+  const sb = Nav.getSb();
+  const {error} = await sb.from('clientes').update({activo:!activo}).eq('id',id);
+  if(error){ Nav.toast('Error al actualizar.','err'); return; }
+  Nav.toast(`Cliente ${activo?'desactivado':'activado'}.`,'ok');
+  loadClientes();
+}
+
+// ── HISTORIAL ─────────────────────────────────────────────────
+async function verHistorial(id, nombre){
+  _histClienteId = id;
+  document.getElementById('histTitulo').textContent = nombre;
+  document.getElementById('modalHistorial').classList.add('open');
+  document.getElementById('histCompras').innerHTML = '<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  document.getElementById('listaComentarios').innerHTML = '<div class="loading"><span class="spinner"></span>Cargando...</div>';
+
+  const sb = Nav.getSb();
+
+  // Info del cliente
+  const resC = await sb.from('clientes').select('*').eq('id',id).single();
+  if(resC.data){
+    const c = resC.data;
+    const totalRes = await sb.from('ventas').select('total').eq('cliente_id',id).eq('estado','completada');
+    const totalGastado = (totalRes.data||[]).reduce((s,v)=>s+parseFloat(v.total||0),0);
+    document.getElementById('histInfo').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Teléfono</div>
+          <div style="font-size:13px;font-family:'DM Mono',monospace">${c.telefono||'—'}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">WhatsApp</div>
+          <div style="font-size:13px;font-family:'DM Mono',monospace">${c.whatsapp||'—'}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Total gastado</div>
+          <div style="font-size:13px;font-weight:600;color:var(--success)">${Q(totalGastado)}</div></div>
+        <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Cliente desde</div>
+          <div style="font-size:13px">${c.creado_en?new Date(c.creado_en).toLocaleDateString('es-GT'):'—'}</div></div>
+      </div>`;
+  }
+
+  // Compras
+  loadComprasHistorial(id);
+  // Comentarios
+  loadComentariosHistorial(id);
+}
+
+async function loadComprasHistorial(id){
+  const sb  = Nav.getSb();
+  const res = await sb.from('ventas')
+    .select('id,total,fecha,turno,estado,detalle_venta(cantidad,precio_unitario,variantes(tallas(nombre),colores(nombre),productos(nombre))),pagos_venta(monto,metodos_pago(nombre))')
+    .eq('cliente_id',id)
+    .eq('estado','completada')
+    .order('fecha',{ascending:false})
+    .limit(20);
+  const data = res.data||[];
+  if(!data.length){
+    document.getElementById('histCompras').innerHTML='<div style="color:var(--muted);font-size:13px">Sin compras registradas.</div>';
+    return;
+  }
+  document.getElementById('histCompras').innerHTML = data.map(v => {
+    const fecha   = v.fecha ? new Date(v.fecha).toLocaleString('es-GT') : '—';
+    const metodos = (v.pagos_venta||[]).map(p=>p.metodos_pago?.nombre||'').filter(Boolean).join(', ');
+    const items   = (v.detalle_venta||[]).map(d =>
+      `${d.variantes?.productos?.nombre||'?'} T:${d.variantes?.tallas?.nombre||'?'} x${d.cantidad}`
+    ).join(' · ');
+    return `<div class="compra-item">
+      <div class="compra-hdr">
+        <span class="compra-fecha">${fecha}</span>
+        <span class="compra-total">${Q(v.total)}</span>
+      </div>
+      <div class="compra-det">${items||'—'}</div>
+      ${metodos?`<span class="compra-metodo">${metodos}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function loadComentariosHistorial(id){
+  const sb  = Nav.getSb();
+  const res = await sb.from('comentarios_cliente')
+    .select('id,comentario,creado_en,usuarios(nombre)')
+    .eq('cliente_id',id)
+    .order('creado_en',{ascending:false});
+  const data = res.data||[];
+  if(!data.length){
+    document.getElementById('listaComentarios').innerHTML='<div style="color:var(--muted);font-size:13px">Sin notas registradas.</div>';
+    return;
+  }
+  document.getElementById('listaComentarios').innerHTML = data.map(c=>`
+    <div class="comentario-item">
+      <div class="comentario-meta">${c.usuarios?.nombre||'—'} · ${c.creado_en?new Date(c.creado_en).toLocaleDateString('es-GT'):'—'}</div>
+      <div class="comentario-txt">${c.comentario}</div>
+    </div>`).join('');
+}
+
+async function guardarComentario(){
+  const txt = document.getElementById('nuevoComentario').value.trim();
+  if(!txt){ Nav.toast('Escribe una nota.','err'); return; }
+  const sb   = Nav.getSb();
+  const user = Nav.getUser();
+  const {error} = await sb.from('comentarios_cliente').insert({
+    cliente_id:  _histClienteId,
+    usuario_id:  user.id,
+    comentario:  txt
+  });
+  if(error){ Nav.toast('Error al guardar.','err'); return; }
+  document.getElementById('nuevoComentario').value='';
+  Nav.toast('Nota guardada.','ok');
+  loadComentariosHistorial(_histClienteId);
+}
+
+function switchHistTab(tab, el){
+  document.getElementById('histCompras').style.display    = tab==='compras'?'':'none';
+  document.getElementById('histComentarios').style.display= tab==='comentarios'?'':'none';
+  document.querySelectorAll('.htab').forEach(t=>{
+    t.style.background = t===el ? 'var(--accent)' : 'transparent';
+    t.style.color      = t===el ? '#fff' : 'var(--muted)';
+  });
+}
+
+// ── CARGA INICIAL ─────────────────────────────────────────────
+loadKPIs();
+loadClientes();
+</script>
+</body>
+</html>
