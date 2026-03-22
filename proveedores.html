@@ -586,8 +586,8 @@ async function loadCompras(){
   }
   const sb  = Nav.getSb();
   const res = await sb.from('compras')
-    .select('id,tipo_orden,total,estado,fecha_orden,fecha_entrega_estimada,notas,proveedores(nombre)')
-    .order('fecha_orden',{ascending:false})
+    .select('id,tipo,total,estado,creado_en,fecha_entrega,notas,proveedores(nombre)')
+    .order('creado_en',{ascending:false})
     .limit(50);
   _compras = res.data||[];
   renderCompras(_compras);
