@@ -624,14 +624,14 @@ function renderCompras(data){
       </tr></thead>
       <tbody>${data.map(c=>`<tr>
         <td style="font-weight:500">${c.proveedores?.nombre||'—'}</td>
-        <td style="text-transform:capitalize;color:var(--muted)">${c.tipo_orden||'—'}</td>
+        <td style="text-transform:capitalize;color:var(--muted)">${c.tipo||'—'}</td>
         <td style="font-family:'DM Mono',monospace;color:var(--success);font-weight:500">${Q(c.total)}</td>
         <td><span class="tag ${ESTADO_COLOR[c.estado]||''}">${c.estado||'—'}</span></td>
         <td style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
-          ${c.fecha_orden?new Date(c.fecha_orden).toLocaleDateString('es-GT'):'—'}
+          ${c.creado_en?new Date(c.creado_en).toLocaleDateString('es-GT'):'—'}
         </td>
         <td style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace">
-          ${c.fecha_entrega_estimada?new Date(c.fecha_entrega_estimada).toLocaleDateString('es-GT'):'—'}
+          ${c.fecha_entrega?new Date(c.fecha_entrega).toLocaleDateString('es-GT'):'—'}
         </td>
         <td style="font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
           ${c.notas||'—'}
