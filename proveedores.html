@@ -392,12 +392,12 @@ function loadTab(id){
 // ── KPIs ──────────────────────────────────────────────────────
 async function loadKPIs(){
   const sb = Nav.getSb();
+  const hace30dias = new Date(Date.now()-30*864e5).toISOString();
   const [resT, resA, resC, resP] = await Promise.all([
     sb.from('proveedores').select('id',{count:'exact'}),
     sb.from('proveedores').select('id',{count:'exact'}).eq('activo',true),
     sb.from('compras').select('total').eq('estado','pendiente'),
-    sb.from('compras').select('total').gte('fecha_orden',
-      new Date(Date.now()-30*864e5).toISOString()),
+    sb.from('compras').select('total').gte('creado_en', hace30dias),
   ]);
   const total    = resT.count||0;
   const activos  = resA.count||0;
@@ -665,15 +665,16 @@ async function guardarCompra(){
   if(!total)  { Nav.toast('El total es obligatorio.','err'); return; }
   const btn = document.getElementById('btnGuardarCompra');
   btn.disabled=true; btn.textContent='Guardando...';
-const datos = {
-    proveedor_id:   provId,
-    tipo:           document.getElementById('cTipo').value,
+  const datos = {
+    proveedor_id:  provId,
+    usuario_id:    Nav.getUser().id,
+    tipo:          document.getElementById('cTipo').value,
     total,
-    estado:         document.getElementById('cEstado').value,
-    fecha_entrega:  document.getElementById('cFechaEntrega').value||null,
-    tipo_pago:      document.getElementById('cMetodoPago').value,
-    notas:          document.getElementById('cNotas').value.trim()||null,
-};
+    estado:        document.getElementById('cEstado').value,
+    fecha_entrega: document.getElementById('cFechaEntrega').value||null,
+    tipo_pago:     document.getElementById('cMetodoPago').value,
+    notas:         document.getElementById('cNotas').value.trim()||null,
+  };
   try {
     const sb = Nav.getSb();
     const {error} = await sb.from('compras').insert(datos);
@@ -702,9 +703,7 @@ async function loadCredito(){
     return;
   }
 
-  // Para cada proveedor con crédito obtener compras pendientes
-  const sb2 = Nav.getSb();
-  const resCom = await sb2.from('compras')
+  const resCom = await sb.from('compras')
     .select('proveedor_id,total')
     .eq('estado','pendiente');
   const pendMap = {};
@@ -755,7 +754,7 @@ async function verDetalle(id, nombre){
   const sb  = Nav.getSb();
   const [resP, resC] = await Promise.all([
     sb.from('proveedores').select('*').eq('id',id).single(),
-    sb.from('compras').select('*').eq('proveedor_id',id).order('fecha_orden',{ascending:false}).limit(10),
+    sb.from('compras').select('*').eq('proveedor_id',id).order('creado_en',{ascending:false}).limit(10),
   ]);
 
   const p    = resP.data||{};
@@ -778,12 +777,12 @@ async function verDetalle(id, nombre){
     ${comp.length ? comp.map(c=>`
       <div class="compra-item">
         <div class="compra-hdr">
-          <span class="compra-fecha">${c.fecha_orden?new Date(c.fecha_orden).toLocaleDateString('es-GT'):'—'}</span>
+          <span class="compra-fecha">${c.creado_en?new Date(c.creado_en).toLocaleDateString('es-GT'):'—'}</span>
           <span class="compra-total">${Q(c.total)}</span>
         </div>
         <div class="compra-det" style="display:flex;align-items:center;gap:8px;">
-          <span class="tag ${ESTADO_COLOR[c.estado]||''}">${c.estado}</span>
-          <span style="text-transform:capitalize">${c.tipo_orden||''}</span>
+          <span class="tag ${ESTADO_COLOR[c.estado]||''}">${c.estado||'—'}</span>
+          <span style="text-transform:capitalize">${c.tipo||''}</span>
         </div>
         ${c.notas?`<div style="font-size:11px;color:var(--muted);margin-top:4px">${c.notas}</div>`:''}
       </div>`).join('') : '<div style="color:var(--muted);font-size:13px">Sin compras registradas.</div>'}`;
