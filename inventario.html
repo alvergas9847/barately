@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARATELY — Inventario</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1f1f28;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --accent:#6c5ce7;--accent-glow:rgba(108,92,231,0.2);
+  --text:#ededf5;--muted:#6b6b82;--muted2:#3a3a4a;
+  --success:#43c59e;--danger:#e84343;--warning:#f0a500;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;transition:transform .3s;}
+.logo{padding:24px 20px;border-bottom:1px solid var(--border);}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:.1em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:.16em;text-transform:uppercase;margin-top:3px;}
+nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-sec{font-size:9px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:12px 20px 4px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:13px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .15s;user-select:none;text-decoration:none;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.03);}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(108,92,231,0.08);}
+.nav-icon{width:16px;text-align:center;font-size:14px;flex-shrink:0;}
+.sidebar-footer{padding:14px 20px;border-top:1px solid var(--border);}
+.user-pill{display:flex;align-items:center;gap:10px;}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a855f7);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:500;}
+.user-role{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:14px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.fecha-tag{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.btn-logout{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:4px 12px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger);}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+.content{padding:24px 28px;flex:1;}
+.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;width:fit-content;}
+.tab{padding:7px 16px;font-size:12px;font-weight:500;border-radius:7px;cursor:pointer;color:var(--muted);transition:all .2s;user-select:none;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:22px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-val{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.search-bar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.search-input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
+.filter-select option{background:var(--surface2);}
+.tabla{width:100%;border-collapse:collapse;}
+.tabla th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tabla td{padding:11px 12px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+.tabla tr:last-child td{border-bottom:none;}
+.tabla tr:hover td{background:rgba(255,255,255,0.02);}
+.prod-cell{display:flex;align-items:center;gap:10px;}
+.prod-icon{width:36px;height:36px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.prod-name{font-weight:500;font-size:13px;}
+.prod-code{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);}
+.stock-ok{color:var(--success);font-weight:600;}
+.stock-warn{color:var(--warning);font-weight:600;}
+.stock-crit{color:var(--danger);font-weight:600;}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-right:4px;}
+.btn-sm:hover{color:var(--text);border-color:var(--border2);}
+.btn-sm.edit:hover{color:var(--accent);border-color:var(--accent);}
+.btn-sm.del:hover{color:var(--danger);border-color:var(--danger);}
+.btn-sm.add:hover{color:var(--success);border-color:var(--success);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;animation:fadeUp .25s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:22px;}
+.modal-footer{padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field select option{background:var(--surface2);}
+.field textarea{resize:vertical;min-height:70px;}
+.var-editor{border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.var-editor-hdr{padding:8px 12px;background:var(--surface2);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:grid;grid-template-columns:1fr 1fr 80px 80px 32px;gap:8px;}
+.var-row{display:grid;grid-template-columns:1fr 1fr 80px 80px 32px;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);align-items:center;}
+.var-row:last-child{border-bottom:none;}
+.var-input{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;width:100%;}
+.var-input:focus{border-color:var(--accent);}
+.var-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px;}
+.var-del:hover{color:var(--danger);}
+.btn-add-var{background:none;border:1px dashed var(--border2);border-radius:6px;padding:7px 12px;font-size:11px;color:var(--muted);cursor:pointer;width:100%;margin-top:8px;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.btn-add-var:hover{border-color:var(--accent);color:var(--accent);}
+.alerta-stock{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.alerta-stock:last-child{border-bottom:none;}
+.alerta-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.ai-red{background:rgba(232,67,67,.15);}
+.ai-amber{background:rgba(240,165,0,.15);}
+.mov-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;}
+.mov-row:last-child{border-bottom:none;}
+.mov-tipo{padding:3px 8px;border-radius:99px;font-size:10px;font-weight:600;}
+.mov-entrada{background:rgba(67,197,158,.12);color:var(--success);}
+.mov-salida{background:rgba(232,67,67,.1);color:var(--danger);}
+.mov-ajuste{background:rgba(240,165,0,.1);color:var(--warning);}
+.notif{position:fixed;bottom:24px;right:24px;z-index:300;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(80px);opacity:0;transition:transform .3s,opacity .3s;}
+.notif.show{transform:translateY(0);opacity:1;}
+.notif.ok{border-left:3px solid var(--success);}
+.notif.err{border-left:3px solid var(--danger);}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90;}
+.empty{text-align:center;padding:48px;color:var(--muted);}
+.empty-icon{font-size:32px;margin-bottom:12px;}
+.empty-title{font-family:'Syne',sans-serif;font-size:15px;margin-bottom:6px;color:var(--text);}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .overlay.open{display:block;}
+  .main{margin-left:0;}
+  .hamburger{display:block;}
+  .content{padding:16px;}
+  .topbar{padding:12px 16px;}
+  .form-grid{grid-template-columns:1fr;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .var-row,.var-editor-hdr{grid-template-columns:1fr 1fr 60px 60px 28px;}
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="logo"><div class="logo-name">BARATELY</div><div class="logo-sub">Panel Admin</div></div>
+  <nav>
+    <div class="nav-sec">Principal</div>
+    <a class="nav-item" href="dashboard.html"><span class="nav-icon">▣</span> Dashboard</a>
+    <div class="nav-sec">Gestión</div>
+    <a class="nav-item" href="usuarios.html"><span class="nav-icon">◉</span> Usuarios</a>
+    <a class="nav-item active"><span class="nav-icon">◻</span> Inventario</a>
+    <div class="nav-sec">Próximamente</div>
+    <a class="nav-item" style="opacity:.4;cursor:default;"><span class="nav-icon">◎</span> Ventas</a>
+    <a class="nav-item" style="opacity:.4;cursor:default;"><span class="nav-icon">⬡</span> Proveedores</a>
+    <a class="nav-item" style="opacity:.4;cursor:default;"><span class="nav-icon">✦</span> IA & Reportes</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar" id="avatarLetra">G</div>
+      <div><div class="user-name" id="sidebarNombre">—</div><div class="user-role" id="sidebarRol">—</div></div>
+    </div>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
+      <div class="page-title">Inventario</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fecha-tag" id="fechaTag"></div>
+      <button class="btn-logout" onclick="logout()">Salir</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="kpi-grid" id="kpiGrid"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('productos',this)">Productos</div>
+      <div class="tab" onclick="switchTab('stock',this)">Stock crítico</div>
+      <div class="tab" onclick="switchTab('movimientos',this)">Movimientos</div>
+    </div>
+    <div class="tab-content active" id="tab-productos">
+      <div class="search-bar">
+        <input class="search-input" id="searchProd" placeholder="Buscar producto..." oninput="filtrarProductos()"/>
+        <select class="filter-select" id="filtroCategoria" onchange="filtrarProductos()"><option value="">Todas las categorías</option></select>
+        <select class="filter-select" id="filtroEstado" onchange="filtrarProductos()">
+          <option value="">Todos</option><option value="true">Activos</option><option value="false">Inactivos</option>
+        </select>
+        <button class="btn-primary" id="btnNuevoProd" onclick="abrirModalProducto()">+ Nuevo producto</button>
+      </div>
+      <div class="card"><div style="padding:0" id="tablaProductos"><div class="loading"><span class="spinner"></span>Cargando...</div></div></div>
+    </div>
+    <div class="tab-content" id="tab-stock">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Variantes bajo el mínimo</div><span id="stockCritCount" style="font-size:12px;color:var(--warning)"></span></div>
+        <div style="padding:18px;" id="stockCritico"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+    <div class="tab-content" id="tab-movimientos">
+      <div class="card">
+        <div class="card-hdr"><div class="card-title">Últimos movimientos</div></div>
+        <div style="padding:18px;" id="listaMovimientos"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal-bg" id="modalProducto">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalProdTitulo">Nuevo producto</div>
+      <button class="modal-close" onclick="cerrarModalProducto()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full"><label>Nombre *</label><input type="text" id="pNombre" placeholder="Ej: Pantalón Lona Stretch"/></div>
+        <div class="field"><label>Categoría *</label><select id="pCategoria"><option value="">Selecciona...</option></select></div>
+        <div class="field"><label>Tipo de ropa</label>
+          <select id="pTipo">
+            <option value="">Selecciona...</option>
+            <option value="ropa_bebes">Ropa bebés</option><option value="calcetines">Calcetines</option>
+            <option value="calzoncillos">Calzoncillos</option><option value="playeras">Playeras</option>
+            <option value="pantalones">Pantalones</option><option value="cinchos">Cinchos</option>
+            <option value="camisetas">Camisetas</option><option value="blusas">Blusas</option>
+            <option value="toallas">Toallas</option><option value="calzones">Calzones</option>
+            <option value="trajes_bano">Trajes de baño</option><option value="trajes_deportivos">Trajes deportivos</option>
+            <option value="pantalonetas">Pantalonetas</option><option value="camisas_formales">Camisas formales</option>
+            <option value="bolsos">Bolsos</option><option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field"><label>Subtipo / Material</label><input type="text" id="pSubtipo" placeholder="Ej: Lona dura"/></div>
+        <div class="field"><label>Precio venta (Q) *</label><input type="number" id="pPrecioVenta" placeholder="0.00" step="0.01"/></div>
+        <div class="field"><label>Precio costo (Q)</label><input type="number" id="pPrecioCosto" placeholder="0.00" step="0.01"/></div>
+        <div class="field"><label>Código de barras</label><input type="text" id="pCodigoBarra" placeholder="Escanea o escribe" style="font-family:'DM Mono',monospace;"/></div>
+        <div class="field"><label>Estado</label>
+          <select id="pEstado">
+            <option value="stock">Stock</option><option value="nuevo">Nuevo</option>
+            <option value="promocion">En promoción</option><option value="devolucion">Devolución</option>
+            <option value="mal_estado">Mal estado</option>
+          </select>
+        </div>
+        <div class="field form-full">
+          <label>Variantes (talla + color + stock)</label>
+          <div class="var-editor">
+            <div class="var-editor-hdr"><span>Talla</span><span>Color</span><span>Stock</span><span>Mínimo</span><span></span></div>
+            <div id="variantesContainer"></div>
+          </div>
+          <button class="btn-add-var" onclick="agregarVariante()">+ Agregar talla / color</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModalProducto()">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarProd" onclick="guardarProducto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AJUSTE STOCK -->
+<div class="modal-bg" id="modalStock">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalStockTitulo">Ajustar stock</div>
+      <button class="modal-close" onclick="cerrarModalStock()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full"><label>Tipo de movimiento</label>
+          <select id="sTipo">
+            <option value="entrada">Entrada (recibir mercancía)</option>
+            <option value="salida">Salida (retiro manual)</option>
+            <option value="ajuste">Ajuste (corrección de inventario)</option>
+          </select>
+        </div>
+        <div class="field form-full"><label>Cantidad</label><input type="number" id="sCantidad" placeholder="0" min="1"/></div>
+        <div class="field form-full"><label>Observaciones</label><textarea id="sObservaciones" placeholder="Motivo..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModalStock()">Cancelar</button>
+      <button class="btn-primary" onclick="guardarMovimiento()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const SUPABASE_URL = 'TU_SUPABASE_URL';
+const SUPABASE_KEY = 'TU_SUPABASE_KEY';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const user = JSON.parse(localStorage.getItem('barately_user') || 'null');
+if (!user) window.location.href = 'index.html';
+
+const esReadOnly = user?.rol === 'contador';
+document.getElementById('sidebarNombre').textContent = user?.nombre || '—';
+document.getElementById('sidebarRol').textContent    = user?.rol    || '—';
+document.getElementById('avatarLetra').textContent   = (user?.nombre||'U')[0].toUpperCase();
+if (esReadOnly) document.getElementById('btnNuevoProd').style.display = 'none';
+
+function logout(){ localStorage.removeItem('barately_user'); window.location.href='index.html'; }
+
+const DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const now=new Date();
+document.getElementById('fechaTag').textContent=`${DIAS[now.getDay()]} ${now.getDate()} ${MESES[now.getMonth()]} ${now.getFullYear()}`;
+
+const Q=v=>`Q${parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+function notif(msg,tipo='ok'){
+  const el=document.getElementById('notif');
+  el.textContent=msg; el.className=`notif ${tipo} show`;
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open');}
+
+const tabLoaded={};
+function switchTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+  if(!tabLoaded[id]){tabLoaded[id]=true;loadTab(id);}
+}
+function loadTab(id){
+  if(id==='stock') loadStockCritico();
+  if(id==='movimientos') loadMovimientos();
+}
+
+let _productos=[],_categorias=[],_tallas=[],_colores=[];
+let _editandoProdId=null,_varianteActualId=null;
+
+async function loadKPIs(){
+  const[resP,resV,resS,resM]=await Promise.all([
+    sb.from('productos').select('id').eq('activo',true),
+    sb.from('variantes').select('stock').eq('activo',true),
+    sb.from('vw_stock_bajo').select('*'),
+    sb.from('movimientos_inventario').select('id').gte('fecha',new Date().toISOString().split('T')[0]),
+  ]);
+  const totalProds=(resP.data||[]).length;
+  const totalUnids=(resV.data||[]).reduce((s,v)=>s+parseInt(v.stock||0),0);
+  const stockCrit=(resS.data||[]).length;
+  const movsHoy=(resM.data||[]).length;
+  document.getElementById('kpiGrid').innerHTML=`
+    <div class="kpi"><div class="kpi-label">Productos activos</div><div class="kpi-val">${totalProds}</div></div>
+    <div class="kpi"><div class="kpi-label">Unidades en stock</div><div class="kpi-val" style="color:var(--success)">${totalUnids.toLocaleString()}</div></div>
+    <div class="kpi"><div class="kpi-label">Stock crítico</div><div class="kpi-val" style="color:${stockCrit>0?'var(--danger)':'var(--success)'}">${stockCrit}</div><div class="kpi-sub">Bajo mínimo</div></div>
+    <div class="kpi"><div class="kpi-label">Movimientos hoy</div><div class="kpi-val">${movsHoy}</div></div>`;
+}
+
+async function loadCategorias(){
+  const res=await sb.from('categorias').select('id,nombre').eq('activo',true).order('nombre');
+  _categorias=res.data||[];
+  const sel=document.getElementById('pCategoria');
+  sel.innerHTML='<option value="">Selecciona...</option>'+_categorias.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  const filtro=document.getElementById('filtroCategoria');
+  filtro.innerHTML='<option value="">Todas las categorías</option>'+_categorias.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+}
+
+async function loadTallasColores(){
+  const[resT,resC]=await Promise.all([
+    sb.from('tallas').select('id,nombre,grupo').eq('activo',true).order('orden'),
+    sb.from('colores').select('id,nombre,hex').eq('activo',true).order('nombre'),
+  ]);
+  _tallas=resT.data||[];
+  _colores=resC.data||[];
+}
+
+async function loadProductos(){
+  const res=await sb.from('productos')
+    .select('id,nombre,codigo_barra,tipo_ropa,subtipo,precio_venta,precio_costo,estado,activo,categoria_id,categorias(nombre)')
+    .order('nombre');
+  _productos=res.data||[];
+  renderProductos(_productos);
+}
+
+function filtrarProductos(){
+  const q=document.getElementById('searchProd').value.toLowerCase();
+  const catId=document.getElementById('filtroCategoria').value;
+  const estado=document.getElementById('filtroEstado').value;
+  let lista=_productos.filter(p=>{
+    const mQ=!q||p.nombre.toLowerCase().includes(q)||(p.codigo_barra||'').toLowerCase().includes(q);
+    const mC=!catId||p.categoria_id===catId;
+    const mE=estado===''||String(p.activo)===estado;
+    return mQ&&mC&&mE;
+  });
+  renderProductos(lista);
+}
+
+const ICONOS={pantalones:'👖',playeras:'👕',camisetas:'👕',blusas:'👚',camisas_formales:'👔',trajes_bano:'🩱',trajes_deportivos:'🏃',calcetines:'🧦',cinchos:'🪢',bolsos:'👜',ropa_bebes:'🍼',otro:'🏷️'};
+
+function renderProductos(lista){
+  if(!lista.length){
+    document.getElementById('tablaProductos').innerHTML=`<div class="empty"><div class="empty-icon">◻</div><div class="empty-title">Sin productos</div><div style="font-size:12px;color:var(--muted)">Agrega tu primer producto</div></div>`;
+    return;
+  }
+  document.getElementById('tablaProductos').innerHTML=`
+    <table class="tabla">
+      <thead><tr><th>Producto</th><th>Categoría</th><th>Precio venta</th><th>Precio costo</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>${lista.map(p=>{
+        const icono=ICONOS[p.tipo_ropa]||'🏷️';
+        const cat=p.categorias?.nombre||'—';
+        return`<tr>
+          <td><div class="prod-cell"><div class="prod-icon">${icono}</div>
+            <div><div class="prod-name">${p.nombre}${p.subtipo?` <span style="color:var(--muted);font-size:11px">${p.subtipo}</span>`:''}</div>
+            <div class="prod-code">${p.codigo_barra||'Sin código'}</div></div>
+          </div></td>
+          <td style="font-size:12px;color:var(--muted)">${cat}</td>
+          <td style="font-weight:500;color:var(--success)">${Q(p.precio_venta)}</td>
+          <td style="font-size:12px;color:var(--muted)">${p.precio_costo?Q(p.precio_costo):'—'}</td>
+          <td><span style="font-size:11px;padding:2px 7px;border-radius:99px;background:${p.activo?'rgba(67,197,158,.1)':'rgba(255,255,255,.05)'};color:${p.activo?'var(--success)':'var(--muted)'}">${p.activo?'Activo':'Inactivo'}</span></td>
+          <td>
+            ${!esReadOnly?`<button class="btn-sm edit" onclick="verVariantes('${p.id}','${p.nombre.replace(/'/g,"\\'")}')">Variantes</button>
+            <button class="btn-sm edit" onclick="editarProducto('${p.id}')">Editar</button>
+            <button class="btn-sm del" onclick="toggleProducto('${p.id}',${p.activo},'${p.nombre.replace(/'/g,"\\'")}')">
+              ${p.activo?'Desactivar':'Activar'}</button>`
+            :`<button class="btn-sm" onclick="verVariantes('${p.id}','${p.nombre.replace(/'/g,"\\'")}')">Ver stock</button>`}
+          </td></tr>`;
+      }).join('')}</tbody>
+    </table>`;
+}
+
+function abrirModalProducto(){
+  if(esReadOnly)return;
+  _editandoProdId=null;
+  document.getElementById('modalProdTitulo').textContent='Nuevo producto';
+  ['pNombre','pSubtipo','pPrecioVenta','pPrecioCosto','pCodigoBarra'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('pEstado').value='stock';
+  document.getElementById('pCategoria').value='';
+  document.getElementById('pTipo').value='';
+  document.getElementById('variantesContainer').innerHTML='';
+  agregarVariante();
+  document.getElementById('modalProducto').classList.add('open');
+}
+function cerrarModalProducto(){document.getElementById('modalProducto').classList.remove('open');}
+
+async function editarProducto(id){
+  if(esReadOnly)return;
+  const res=await sb.from('productos').select('*').eq('id',id).single();
+  if(!res.data)return;
+  const p=res.data;
+  _editandoProdId=id;
+  document.getElementById('modalProdTitulo').textContent='Editar producto';
+  document.getElementById('pNombre').value=p.nombre||'';
+  document.getElementById('pSubtipo').value=p.subtipo||'';
+  document.getElementById('pPrecioVenta').value=p.precio_venta||'';
+  document.getElementById('pPrecioCosto').value=p.precio_costo||'';
+  document.getElementById('pCodigoBarra').value=p.codigo_barra||'';
+  document.getElementById('pEstado').value=p.estado||'stock';
+  document.getElementById('pCategoria').value=p.categoria_id||'';
+  document.getElementById('pTipo').value=p.tipo_ropa||'';
+  const resV=await sb.from('variantes').select('id,talla_id,color_id,stock,stock_minimo').eq('producto_id',id).eq('activo',true);
+  document.getElementById('variantesContainer').innerHTML='';
+  (resV.data||[]).forEach(v=>agregarVariante(v.talla_id,v.color_id,v.stock,v.stock_minimo,v.id));
+  if(!resV.data?.length)agregarVariante();
+  document.getElementById('modalProducto').classList.add('open');
+}
+
+function agregarVariante(tallaId='',colorId='',stock=0,minimo=5,varId=''){
+  const cont=document.getElementById('variantesContainer');
+  const div=document.createElement('div');
+  div.className='var-row';
+  div.dataset.varId=varId;
+  const tallaOpts=_tallas.map(t=>`<option value="${t.id}"${t.id===tallaId?' selected':''}>${t.nombre}</option>`).join('');
+  const colorOpts='<option value="">Sin color</option>'+_colores.map(c=>`<option value="${c.id}"${c.id===colorId?' selected':''}>${c.nombre}</option>`).join('');
+  div.innerHTML=`<select class="var-input">${tallaOpts}</select><select class="var-input">${colorOpts}</select>
+    <input class="var-input" type="number" value="${stock}" min="0"/>
+    <input class="var-input" type="number" value="${minimo}" min="0"/>
+    <button class="var-del" onclick="this.parentElement.remove()">✕</button>`;
+  cont.appendChild(div);
+}
+
+async function guardarProducto(){
+  const nombre=document.getElementById('pNombre').value.trim();
+  const catId=document.getElementById('pCategoria').value;
+  const precio=parseFloat(document.getElementById('pPrecioVenta').value);
+  if(!nombre||!catId||isNaN(precio)){notif('Nombre, categoría y precio son obligatorios.','err');return;}
+  const btn=document.getElementById('btnGuardarProd');
+  btn.disabled=true;btn.textContent='Guardando...';
+  const datos={nombre,categoria_id:catId,tipo_ropa:document.getElementById('pTipo').value||null,
+    subtipo:document.getElementById('pSubtipo').value.trim()||null,precio_venta:precio,
+    precio_costo:parseFloat(document.getElementById('pPrecioCosto').value)||null,
+    codigo_barra:document.getElementById('pCodigoBarra').value.trim()||null,
+    estado:document.getElementById('pEstado').value,activo:true};
+  try{
+    let prodId=_editandoProdId;
+    if(prodId){await sb.from('productos').update(datos).eq('id',prodId);}
+    else{const res=await sb.from('productos').insert(datos).select('id').single();prodId=res.data.id;}
+    const rows=document.querySelectorAll('#variantesContainer .var-row');
+    for(const row of rows){
+      const sels=row.querySelectorAll('select');
+      const inputs=row.querySelectorAll('input');
+      const tallaId=sels[0].value;
+      const colorId=sels[1].value||null;
+      const stock=parseInt(inputs[0].value)||0;
+      const minimo=parseInt(inputs[1].value)||5;
+      const varId=row.dataset.varId;
+      if(!tallaId)continue;
+      if(varId){await sb.from('variantes').update({talla_id:tallaId,color_id:colorId,stock,stock_minimo:minimo}).eq('id',varId);}
+      else{await sb.from('variantes').insert({producto_id:prodId,talla_id:tallaId,color_id:colorId,stock,stock_minimo:minimo});}
+    }
+    notif(_editandoProdId?'Producto actualizado.':'Producto creado.','ok');
+    cerrarModalProducto();
+    await loadProductos();await loadKPIs();
+  }catch(e){notif('Error: '+(e.message||'intenta de nuevo'),'err');}
+  btn.disabled=false;btn.textContent='Guardar';
+}
+
+async function toggleProducto(id,activo,nombre){
+  if(esReadOnly)return;
+  if(!confirm(`¿${activo?'Desactivar':'Activar'} "${nombre}"?`))return;
+  await sb.from('productos').update({activo:!activo}).eq('id',id);
+  notif(`Producto ${activo?'desactivado':'activado'}.`,'ok');
+  await loadProductos();
+}
+
+async function verVariantes(prodId,prodNombre){
+  const res=await sb.from('variantes')
+    .select('id,stock,stock_minimo,tallas(nombre),colores(nombre,hex)')
+    .eq('producto_id',prodId).eq('activo',true).order('stock');
+  const variantes=res.data||[];
+  document.getElementById('modalVariantes')?.remove();
+  const modal=document.createElement('div');
+  modal.className='modal-bg open';modal.id='modalVariantes';
+  modal.innerHTML=`<div class="modal">
+    <div class="modal-hdr"><div class="modal-title">${prodNombre} — Stock</div>
+      <button class="modal-close" onclick="document.getElementById('modalVariantes').remove()">✕</button></div>
+    <div style="padding:0">
+      <table class="tabla">
+        <thead><tr><th>Talla</th><th>Color</th><th>Stock</th><th>Mínimo</th>${!esReadOnly?'<th>Ajustar</th>':''}</tr></thead>
+        <tbody>${variantes.map(v=>{
+          const talla=v.tallas?.nombre||'—';
+          const color=v.colores?.nombre||'—';
+          const hex=v.colores?.hex||'#888';
+          const cls=v.stock<=0?'stock-crit':v.stock<=v.stock_minimo?'stock-warn':'stock-ok';
+          return`<tr>
+            <td style="font-weight:500">${talla}</td>
+            <td><span style="display:inline-flex;align-items:center;gap:6px">
+              <span style="width:10px;height:10px;border-radius:50%;background:${hex};display:inline-block"></span>${color}
+            </span></td>
+            <td class="${cls}">${v.stock}</td>
+            <td style="color:var(--muted)">${v.stock_minimo}</td>
+            ${!esReadOnly?`<td><button class="btn-sm add" onclick="abrirAjusteStock('${v.id}','${talla} ${color}')">Ajustar</button></td>`:''}
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+function abrirAjusteStock(varId,label){
+  _varianteActualId=varId;
+  document.getElementById('modalStockTitulo').textContent=`Ajustar: ${label}`;
+  document.getElementById('sCantidad').value='';
+  document.getElementById('sObservaciones').value='';
+  document.getElementById('sTipo').value='entrada';
+  document.getElementById('modalVariantes')?.remove();
+  document.getElementById('modalStock').classList.add('open');
+}
+function cerrarModalStock(){document.getElementById('modalStock').classList.remove('open');}
+
+async function guardarMovimiento(){
+  const tipo=document.getElementById('sTipo').value;
+  const cantidad=parseInt(document.getElementById('sCantidad').value);
+  const obs=document.getElementById('sObservaciones').value.trim();
+  if(!cantidad||cantidad<=0){notif('Cantidad inválida.','err');return;}
+  try{
+    const resV=await sb.from('variantes').select('stock').eq('id',_varianteActualId).single();
+    let nuevoStock=parseInt(resV.data.stock);
+    if(tipo==='entrada')nuevoStock+=cantidad;
+    else if(tipo==='salida')nuevoStock-=cantidad;
+    else if(tipo==='ajuste')nuevoStock=cantidad;
+    if(nuevoStock<0){notif('El stock no puede ser negativo.','err');return;}
+    await sb.from('variantes').update({stock:nuevoStock}).eq('id',_varianteActualId);
+    await sb.from('movimientos_inventario').insert({variante_id:_varianteActualId,usuario_id:user.id,tipo,cantidad,observaciones:obs||null});
+    notif('Stock actualizado.','ok');
+    cerrarModalStock();
+    await loadKPIs();
+    tabLoaded['movimientos']=false;
+  }catch(e){notif('Error: '+(e.message||'intenta de nuevo'),'err');}
+}
+
+async function loadStockCritico(){
+  const res=await sb.from('vw_stock_bajo').select('*').order('stock');
+  const data=res.data||[];
+  document.getElementById('stockCritCount').textContent=`${data.length} items`;
+  if(!data.length){
+    document.getElementById('stockCritico').innerHTML='<div style="color:var(--success);font-size:13px;text-align:center;padding:20px">✓ Todo el stock está sobre el mínimo</div>';
+    return;
+  }
+  document.getElementById('stockCritico').innerHTML=data.map(s=>`
+    <div class="alerta-stock">
+      <div class="alerta-icon ${s.stock<=2?'ai-red':'ai-amber'}">${s.stock<=2?'🔴':'⚠️'}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500">${s.producto}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Talla: ${s.talla}${s.color?' · '+s.color:''} · ${s.categoria}</div></div>
+      <div style="text-align:right">
+        <div class="${s.stock<=2?'stock-crit':'stock-warn'}" style="font-size:18px;font-weight:700">${s.stock}</div>
+        <div style="font-size:10px;color:var(--muted)">mín: ${s.stock_minimo}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function loadMovimientos(){
+  const res=await sb.from('movimientos_inventario')
+    .select('id,tipo,cantidad,observaciones,fecha,variantes(tallas(nombre),colores(nombre),productos(nombre)),usuarios(nombre)')
+    .order('fecha',{ascending:false}).limit(50);
+  const data=res.data||[];
+  if(!data.length){document.getElementById('listaMovimientos').innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center">Sin movimientos.</div>';return;}
+  document.getElementById('listaMovimientos').innerHTML=data.map(m=>{
+    const prod=m.variantes?.productos?.nombre||'—';
+    const talla=m.variantes?.tallas?.nombre||'—';
+    const color=m.variantes?.colores?.nombre||'';
+    const vendedor=m.usuarios?.nombre||'—';
+    const fecha=new Date(m.fecha).toLocaleString('es-GT');
+    return`<div class="mov-row">
+      <span class="mov-tipo mov-${m.tipo}">${m.tipo}</span>
+      <div style="flex:1"><div style="font-weight:500">${prod} — T:${talla}${color?' '+color:''}</div>
+        <div style="font-size:11px;color:var(--muted)">${m.observaciones||'Sin obs.'} · ${vendedor}</div></div>
+      <div style="text-align:right">
+        <div style="font-weight:600;color:${m.tipo==='entrada'?'var(--success)':m.tipo==='salida'?'var(--danger)':'var(--warning)'}">
+          ${m.tipo==='entrada'?'+':m.tipo==='salida'?'-':'='}${m.cantidad}</div>
+        <div style="font-size:10px;color:var(--muted)">${fecha}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function init(){
+  await Promise.all([loadCategorias(),loadTallasColores()]);
+  await Promise.all([loadKPIs(),loadProductos()]);
+}
+init();
+</script>
+</body>
+</html>
