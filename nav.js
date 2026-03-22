@@ -11,8 +11,8 @@
 const Nav = (() => {
 
   // ── Configuración de Supabase ─────────────────────────────
-  const SUPABASE_URL = 'TU_SUPABASE_URL';
-  const SUPABASE_KEY = 'TU_SUPABASE_KEY';
+  const SUPABASE_URL = 'https://mcbbdzldvlmcpbhzlkpn.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1jYmJkemxkdmxtY3BiaHpsa3BuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTQ4MzAsImV4cCI6MjA4OTY5MDgzMH0.TmccIp3NdW_YnvR5whRsO3zLIyrzO-RZTPjN5OGqo3Y';
 
   // ── Definición de menú por rol ────────────────────────────
   // Cada item: { id, label, icon, href, roles[] }
