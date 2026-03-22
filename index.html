@@ -219,7 +219,7 @@ async function doLogin() {
     const { data, error } = await sb
       .from('usuarios')
       .select('id, nombre, apellidos, pin_acceso, activo, roles(nombre)')
-      .or(`nombre.ilike.${usuario},telefono.ilike.${usuario}`)
+      .or(`nombre.ilike.${usuario},telefono.ilike.${usuario}`) 
       .eq('activo', true)
       .single();
 
