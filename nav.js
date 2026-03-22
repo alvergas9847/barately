@@ -31,6 +31,7 @@ const Nav = (() => {
         { id: 'clientes',    label: 'Clientes',     icon: '◯', href: 'clientes.html',    roles: ['admin','encargado'] },
         { id: 'inventario',  label: 'Inventario',   icon: '◻', href: 'inventario.html',  roles: ['admin','encargado'] },
         { id: 'proveedores', label: 'Proveedores',  icon: '⬡', href: 'proveedores.html', roles: ['admin','encargado','contador'] },
+        { id: 'resumen_venta', label: 'Resumen venta', icon: '＋', href: 'resumen_venta.html', roles: ['admin','encargado'] },
       ]
     },
     {
@@ -39,6 +40,7 @@ const Nav = (() => {
         { id: 'finanzas',    label: 'Finanzas',     icon: '◈', href: 'finanzas.html',    roles: ['admin','contador'] },
         { id: 'usuarios',    label: 'Usuarios',     icon: '◉', href: 'usuarios.html',    roles: ['admin'] },
         { id: 'ia',          label: 'IA & Alertas', icon: '✦', href: 'ia.html',          roles: ['admin','encargado'],
+         { id: 'resumen_venta', label: 'Resumen venta', icon: '＋', href: 'resumen_venta.html', roles: ['admin','encargado'] },
           badge: () => Nav._alertas },
       ]
     },
@@ -49,6 +51,7 @@ const Nav = (() => {
   const PERMISOS = {
     'dashboard':   ['admin','encargado','contador'],
     'ventas':      ['admin','encargado'],
+    'resumen_venta':      ['admin','encargado'],
     'clientes':    ['admin','encargado'],
     'inventario':  ['admin','encargado'],
     'proveedores': ['admin','encargado','contador'],
