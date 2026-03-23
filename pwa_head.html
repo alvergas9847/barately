@@ -1,0 +1,67 @@
+<!-- ═══════════════════════════════════════════════
+     PEGA ESTO dentro del <head> de CADA archivo HTML
+     Justo antes del cierre </head>
+     ═══════════════════════════════════════════════ -->
+
+<!-- PWA manifest -->
+<link rel="manifest" href="/manifest.json"/>
+
+<!-- iOS / iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="BARATELY"/>
+<link rel="apple-touch-icon" href="/icon-192.png"/>
+
+<!-- Android / Chrome -->
+<meta name="theme-color" content="#7c6aff"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+
+<!-- Windows -->
+<meta name="msapplication-TileColor" content="#7c6aff"/>
+<meta name="msapplication-TileImage" content="/icon-192.png"/>
+
+<!-- Service Worker registro -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(r => console.log('SW registrado:', r.scope))
+        .catch(e => console.log('SW error:', e));
+    });
+  }
+</script>
+
+<!-- Banner instalacion Android -->
+<div id="pwaInstallBanner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#13131a;border:1px solid rgba(124,106,255,.4);border-radius:14px;padding:14px 18px;z-index:9999;display:none;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:280px;">
+  <span style="font-size:24px;">📱</span>
+  <div>
+    <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#f0f0f8;">Instalar BARATELY</div>
+    <div style="font-size:11px;color:#6b6b80;">Accede rapido desde tu pantalla</div>
+  </div>
+  <button id="pwaInstallBtn" style="background:#7c6aff;color:#fff;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;">Instalar</button>
+  <button onclick="document.getElementById('pwaInstallBanner').style.display='none'" style="background:none;border:none;color:#6b6b80;cursor:pointer;font-size:18px;line-height:1;">&#x2715;</button>
+</div>
+<script>
+  let _pwaPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    _pwaPrompt = e;
+    const banner = document.getElementById('pwaInstallBanner');
+    if (banner) { banner.style.display = 'flex'; }
+  });
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.addEventListener('click', async () => {
+      if (!_pwaPrompt) return;
+      _pwaPrompt.prompt();
+      const { outcome } = await _pwaPrompt.userChoice;
+      if (outcome === 'accepted') {
+        document.getElementById('pwaInstallBanner').style.display = 'none';
+      }
+    });
+  });
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('pwaInstallBanner').style.display = 'none';
+    console.log('BARATELY instalado como app');
+  });
+</script>
