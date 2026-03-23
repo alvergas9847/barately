@@ -655,6 +655,15 @@ async function guardarVale(){
   btn.disabled=false;btn.textContent='Confirmar';
 }
 
+async function eliminarNomina(id){
+  if(!confirm('Eliminar este pago de nomina?'))return;
+  const sb=Nav.getSb();
+  const {error}=await sb.from('pagos_nomina').delete().eq('id',id);
+  if(error){Nav.toast('Error al eliminar.','err');return;}
+  Nav.toast('Pago eliminado.','ok');
+  _tabLoaded['nomina']=false;loadNomina();loadKPIs();
+}  
+
 // INICIO
 loadKPIs();
 loadResumen();
