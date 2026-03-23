@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARATELY — Finanzas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="nav.js"></script>
+<script>document.write(Nav.sidebarCSS())</script>
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--accent:#7c6aff;--accent-glow:rgba(124,106,255,0.2);--text:#f0f0f8;--muted:#6b6b80;--muted2:#3a3a50;--success:#6affb4;--danger:#ff6a6a;--warning:#ffb76a;--info:#6ab4ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.nav-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.nav-hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.fecha-chip{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.btn-logout{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger);}
+.content{padding:24px 28px;flex:1;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;transition:transform .2s;}
+.kpi:hover{transform:translateY(-2px);}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1;margin-bottom:4px;}
+.kpi-sub{font-size:11px;color:var(--muted);}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.card-body{padding:18px;}
+.filters{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+.search-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
+.filter-select option{background:var(--surface2);}
+.filter-date{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);outline:none;}
+.tabla{width:100%;border-collapse:collapse;}
+.tabla th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tabla td{padding:10px 12px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+.tabla tr:last-child td{border-bottom:none;}
+.tabla tr:hover td{background:rgba(255,255,255,0.02);}
+.btn-accion{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-right:3px;}
+.btn-accion:hover{color:var(--text);border-color:var(--border2);}
+.btn-accion.edit:hover{color:var(--accent);border-color:var(--accent);}
+.btn-accion.del:hover{color:var(--danger);border-color:var(--danger);}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;text-transform:capitalize;}
+.tag-green{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-red{background:rgba(255,106,106,.12);color:var(--danger);}
+.tag-warn{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-muted{background:rgba(255,255,255,.06);color:var(--muted);}
+.tag-blue{background:rgba(106,180,255,.1);color:var(--info);}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:520px;max-height:92vh;overflow-y:auto;animation:fadeUp .22s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-full{grid-column:1/-1;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field select option{background:var(--surface2);}
+.field input::placeholder,.field textarea::placeholder{color:var(--muted);}
+.field textarea{resize:vertical;min-height:60px;}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+.resumen-bar{height:6px;border-radius:99px;background:var(--muted2);overflow:hidden;margin-top:6px;}
+.resumen-fill{height:100%;border-radius:99px;}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:900px){.nav-main{margin-left:0;}.nav-hamburger{display:block!important;}.content{padding:16px;}.topbar{padding:12px 16px;}.form-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<script>document.write(Nav.sidebarHTML())</script>
+<div class="nav-main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="nav-hamburger" onclick="Nav.toggleSidebar()">&#9776;</button>
+      <div class="page-title">Finanzas</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fecha-chip" id="navFecha"></div>
+      <button class="btn-logout" onclick="Nav.logout()">Salir</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="kpi-grid" id="kpiGrid"><div class="loading"><span class="spinner"></span></div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('resumen',this)">Resumen</div>
+      <div class="tab" onclick="switchTab('egresos',this)">Egresos</div>
+      <div class="tab" onclick="switchTab('nomina',this)">Nomina</div>
+      <div class="tab" onclick="switchTab('vales',this)">Vales</div>
+    </div>
+
+    <!-- RESUMEN -->
+    <div id="tab-resumen">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="resumenGrid">
+        <div class="loading"><span class="spinner"></span>Cargando...</div>
+      </div>
+    </div>
+
+    <!-- EGRESOS -->
+    <div id="tab-egresos" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Egresos</div>
+          <div id="btnNuevoEgreso"></div>
+        </div>
+        <div class="filters">
+          <input class="filter-date" type="date" id="egresoIni"/>
+          <input class="filter-date" type="date" id="egresoFin"/>
+          <select class="filter-select" id="egresoCategoria" onchange="filtrarEgresos()">
+            <option value="">Todas las categorias</option>
+            <option value="servicios">Servicios</option>
+            <option value="agua">Agua</option>
+            <option value="luz">Luz</option>
+            <option value="internet">Internet</option>
+            <option value="telefono">Telefono</option>
+            <option value="transporte">Transporte</option>
+            <option value="insumos">Insumos</option>
+            <option value="mantenimiento">Mantenimiento</option>
+            <option value="marketing">Marketing</option>
+            <option value="alquiler">Alquiler</option>
+            <option value="salarios">Salarios</option>
+            <option value="otro">Otro</option>
+          </select>
+          <button class="btn-primary" onclick="loadEgresos()" style="padding:7px 14px;font-size:12px;">Buscar</button>
+        </div>
+        <div id="tablaEgresos"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- NOMINA -->
+    <div id="tab-nomina" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Pagos de nomina</div>
+          <div id="btnNuevaNomina"></div>
+        </div>
+        <div class="filters">
+          <input class="filter-date" type="date" id="nominaIni"/>
+          <input class="filter-date" type="date" id="nominaFin"/>
+          <select class="filter-select" id="nominaUsuario" onchange="loadNomina()">
+            <option value="">Todos los empleados</option>
+          </select>
+          <button class="btn-primary" onclick="loadNomina()" style="padding:7px 14px;font-size:12px;">Buscar</button>
+        </div>
+        <div id="tablaNomina"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- VALES -->
+    <div id="tab-vales" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Vales / Adelantos</div>
+          <span id="valesPendBadge" style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:rgba(255,183,106,.12);color:var(--warning);display:none;"></span>
+        </div>
+        <div class="filters">
+          <select class="filter-select" id="valesEstado" onchange="loadVales()">
+            <option value="">Todos</option>
+            <option value="pendiente">Pendientes</option>
+            <option value="aprobado">Aprobados</option>
+            <option value="rechazado">Rechazados</option>
+          </select>
+          <select class="filter-select" id="valesUsuario" onchange="loadVales()">
+            <option value="">Todos los empleados</option>
+          </select>
+        </div>
+        <div id="tablaVales"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL EGRESO -->
+<div class="modal-bg" id="modalEgreso">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalEgresoTitulo">Nuevo egreso</div>
+      <button class="modal-close" onclick="cerrarModal('modalEgreso')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full"><label>Concepto *</label><input type="text" id="eConcepto" placeholder="Descripcion del egreso"/></div>
+        <div class="field"><label>Monto (Q) *</label><input type="number" id="eMonto" placeholder="0.00" step="0.01" min="0"/></div>
+        <div class="field"><label>Categoria *</label>
+          <select id="eCategoria">
+            <option value="servicios">Servicios</option><option value="agua">Agua</option>
+            <option value="luz">Luz</option><option value="internet">Internet</option>
+            <option value="telefono">Telefono</option><option value="transporte">Transporte</option>
+            <option value="insumos">Insumos</option><option value="mantenimiento">Mantenimiento</option>
+            <option value="marketing">Marketing</option><option value="alquiler">Alquiler</option>
+            <option value="salarios">Salarios</option><option value="otro">Otro</option>
+          </select>
+        </div>
+        <div class="field"><label>Fecha</label><input type="date" id="eFecha"/></div>
+        <div class="field"><label>Periodo inicio</label><input type="date" id="ePeriodoIni"/></div>
+        <div class="field"><label>Periodo fin</label><input type="date" id="ePeriodoFin"/></div>
+        <div class="field form-full"><label>Descripcion adicional</label><textarea id="eDescripcion" placeholder="Detalles adicionales..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalEgreso')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarEgreso" onclick="guardarEgreso()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOMINA -->
+<div class="modal-bg" id="modalNomina">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalNominaTitulo">Registrar pago de nomina</div>
+      <button class="modal-close" onclick="cerrarModal('modalNomina')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field form-full"><label>Empleado *</label><select id="nUsuario"></select></div>
+        <div class="field form-full"><label>Tipo de pago</label><select id="nTipo"></select></div>
+        <div class="field"><label>Periodo inicio</label><input type="date" id="nIni"/></div>
+        <div class="field"><label>Periodo fin</label><input type="date" id="nFin"/></div>
+        <div class="field"><label>Monto base (Q) *</label><input type="number" id="nBase" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()"/></div>
+        <div class="field"><label>Comision (Q)</label><input type="number" id="nComision" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()"/></div>
+        <div class="field"><label>Bonos (Q)</label><input type="number" id="nBonos" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()"/></div>
+        <div class="field"><label>Deducciones (Q)</label><input type="number" id="nDeducciones" placeholder="0.00" step="0.01" min="0" oninput="calcTotal()"/></div>
+        <div class="field form-full">
+          <label>Total a pagar</label>
+          <div style="background:rgba(106,255,180,.08);border:1px solid rgba(106,255,180,.2);border-radius:8px;padding:10px 14px;font-family:'DM Mono',monospace;font-size:16px;font-weight:600;color:var(--success);" id="nTotalDisplay">Q0.00</div>
+        </div>
+        <div class="field form-full"><label>Descripcion</label><textarea id="nDescripcion" placeholder="Observaciones del pago..."></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalNomina')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarNomina" onclick="guardarNomina()">Registrar pago</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APROBAR VALE -->
+<div class="modal-bg" id="modalVale">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalValeTitulo">Aprobar vale</div>
+      <button class="modal-close" onclick="cerrarModal('modalVale')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div id="valeInfo" style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;"></div>
+      <div class="field">
+        <label>Decision *</label>
+        <select id="valeDecision">
+          <option value="aprobado">Aprobar</option>
+          <option value="rechazado">Rechazar</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalVale')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarVale" onclick="guardarVale()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _egresos=[], _egresoEditId=null, _nominaEditId=null, _valeActualId=null;
+let _tabLoaded={}, _usuarios=[], _tiposNomina=[];
+const Q=v=>"Q"+parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+function cerrarModal(id){document.getElementById(id).classList.remove('open');}
+Nav.init('finanzas');
+const esAdmin=Nav.getRol()==='admin';
+const puedeVer=Nav.puede('verFinanzas');
+
+// TABS
+function switchTab(id,el){
+  ['resumen','egresos','nomina','vales'].forEach(t=>document.getElementById('tab-'+t).style.display=t===id?'':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(!_tabLoaded[id]){_tabLoaded[id]=true;
+    if(id==='resumen')loadResumen();
+    if(id==='egresos')initEgresos();
+    if(id==='nomina')initNomina();
+    if(id==='vales')initVales();
+  }
+}
+
+// KPIs
+async function loadKPIs(){
+  const sb=Nav.getSb();
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  const [rI,rE,rV,rN]=await Promise.all([
+    sb.from('ventas').select('total').eq('estado','completada').gte('fecha',ini),
+    sb.from('egresos').select('monto').gte('fecha',ini),
+    sb.from('vales').select('monto').eq('estado','pendiente'),
+    sb.from('pagos_nomina').select('total_pago').gte('fecha_pago',ini),
+  ]);
+  const ingresos=(rI.data||[]).reduce((s,v)=>s+parseFloat(v.total||0),0);
+  const egresos=(rE.data||[]).reduce((s,e)=>s+parseFloat(e.monto||0),0);
+  const valesPend=(rV.data||[]).reduce((s,v)=>s+parseFloat(v.monto||0),0);
+  const nomina=(rN.data||[]).reduce((s,n)=>s+parseFloat(n.total_pago||0),0);
+  const ganancia=ingresos-egresos-nomina;
+  document.getElementById('kpiGrid').innerHTML=
+    '<div class="kpi"><div class="kpi-label">Ingresos mes</div><div class="kpi-value" style="color:var(--success)">'+Q(ingresos)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Egresos mes</div><div class="kpi-value" style="color:var(--danger)">'+Q(egresos)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Nomina mes</div><div class="kpi-value" style="color:var(--warning)">'+Q(nomina)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Ganancia neta</div><div class="kpi-value" style="color:'+(ganancia>=0?'var(--success)':'var(--danger)')+'">'+Q(ganancia)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Vales pendientes</div><div class="kpi-value" style="color:var(--warning)">'+Q(valesPend)+'</div><div class="kpi-sub">Por aprobar</div></div>';
+}
+
+// RESUMEN
+async function loadResumen(){
+  const sb=Nav.getSb();
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  const [rE,rV]=await Promise.all([
+    sb.from('egresos').select('categoria,monto').gte('fecha',ini),
+    sb.from('ventas').select('total,pagos_venta(monto,metodos_pago(nombre))').eq('estado','completada').gte('fecha',ini),
+  ]);
+  // Egresos por categoria
+  const catMap={};
+  (rE.data||[]).forEach(e=>{catMap[e.categoria]=(catMap[e.categoria]||0)+parseFloat(e.monto||0);});
+  const totalEg=Object.values(catMap).reduce((s,v)=>s+v,0)||1;
+  const CAT_COLORS={servicios:'var(--accent)',agua:'var(--info)',luz:'var(--warning)',internet:'var(--success)',transporte:'#ff9f43',insumos:'#a29bfe',mantenimiento:'#fd79a8',marketing:'#00cec9',alquiler:'var(--danger)',salarios:'#fdcb6e',otro:'var(--muted)'};
+  let egHtml='<div class="card"><div class="card-hdr"><div class="card-title">Egresos por categoria</div><span style="font-size:11px;color:var(--muted)">Mes actual</span></div><div class="card-body">';
+  Object.entries(catMap).sort((a,b)=>b[1]-a[1]).forEach(([cat,monto])=>{
+    const pct=Math.round(monto/totalEg*100);
+    const color=CAT_COLORS[cat]||'var(--muted)';
+    egHtml+='<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="text-transform:capitalize;color:var(--muted)">'+cat+'</span><span style="font-family:DM Mono,monospace;color:'+color+'">'+Q(monto)+'</span></div><div class="resumen-bar"><div class="resumen-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+  });
+  if(!Object.keys(catMap).length)egHtml+='<div style="color:var(--muted);font-size:13px;">Sin egresos este mes.</div>';
+  egHtml+='</div></div>';
+  // Ingresos por metodo de pago
+  const metMap={};
+  (rV.data||[]).forEach(v=>(v.pagos_venta||[]).forEach(p=>{const n=p.metodos_pago?.nombre||'otro';metMap[n]=(metMap[n]||0)+parseFloat(p.monto||0);}));
+  const totalMet=Object.values(metMap).reduce((s,v)=>s+v,0)||1;
+  const MET_COLORS={efectivo:'var(--success)',tarjeta:'var(--accent)',transferencia:'var(--info)',visalink:'var(--warning)'};
+  let metHtml='<div class="card"><div class="card-hdr"><div class="card-title">Ingresos por metodo de pago</div></div><div class="card-body">';
+  Object.entries(metMap).sort((a,b)=>b[1]-a[1]).forEach(([met,monto])=>{
+    const pct=Math.round(monto/totalMet*100);
+    const color=MET_COLORS[met]||'var(--muted)';
+    metHtml+='<div style="margin-bottom:12px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="text-transform:capitalize;color:var(--muted)">'+met+'</span><span style="font-family:DM Mono,monospace;color:'+color+'">'+Q(monto)+' ('+pct+'%)</span></div><div class="resumen-bar"><div class="resumen-fill" style="width:'+pct+'%;background:'+color+'"></div></div></div>';
+  });
+  if(!Object.keys(metMap).length)metHtml+='<div style="color:var(--muted);font-size:13px;">Sin ingresos este mes.</div>';
+  metHtml+='</div></div>';
+  document.getElementById('resumenGrid').innerHTML=egHtml+metHtml;
+  document.getElementById('resumenGrid').style.gridTemplateColumns='1fr 1fr';
+}
+
+// EGRESOS
+function initEgresos(){
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  document.getElementById('egresoIni').value=ini;
+  document.getElementById('egresoFin').value=hoy;
+  if(esAdmin)document.getElementById('btnNuevoEgreso').innerHTML='<button class="btn-primary" onclick="abrirModalEgreso()">+ Nuevo egreso</button>';
+  loadEgresos();
+}
+
+async function loadEgresos(){
+  document.getElementById('tablaEgresos').innerHTML='<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  const sb=Nav.getSb();
+  const ini=document.getElementById('egresoIni').value;
+  const fin=document.getElementById('egresoFin').value;
+  const cat=document.getElementById('egresoCategoria').value;
+  let q=sb.from('egresos').select('id,concepto,monto,categoria,fecha,descripcion,usuarios(nombre)').order('fecha',{ascending:false});
+  if(ini)q=q.gte('fecha',ini);
+  if(fin)q=q.lte('fecha',fin+'T23:59:59');
+  if(cat)q=q.eq('categoria',cat);
+  const res=await q.limit(100);
+  _egresos=res.data||[];
+  filtrarEgresos();
+}
+
+function filtrarEgresos(){
+  renderEgresos(_egresos);
+}
+
+const CAT_TAG={servicios:'tag-blue',agua:'tag-blue',luz:'tag-warn',internet:'tag-blue',transporte:'tag-muted',insumos:'tag-muted',mantenimiento:'tag-warn',marketing:'tag-green',alquiler:'tag-red',salarios:'tag-warn',otro:'tag-muted'};
+
+function renderEgresos(data){
+  if(!data.length){document.getElementById('tablaEgresos').innerHTML='<div class="loading">Sin egresos en ese periodo.</div>';return;}
+  const total=data.reduce((s,e)=>s+parseFloat(e.monto||0),0);
+  let html='<div style="padding:8px 16px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);">'+data.length+' registros — Total: <strong style="color:var(--danger)">'+Q(total)+'</strong></div>';
+  html+='<table class="tabla"><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoria</th><th>Monto</th><th>Registrado por</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
+  data.forEach(e=>{
+    const fecha=e.fecha?new Date(e.fecha).toLocaleDateString('es-GT'):'—';
+    html+='<tr><td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
+    html+='<td style="font-weight:500">'+e.concepto+'<br><span style="font-size:10px;color:var(--muted)">'+(e.descripcion||'')+'</span></td>';
+    html+='<td><span class="tag '+(CAT_TAG[e.categoria]||'tag-muted')+'">'+e.categoria+'</span></td>';
+    html+='<td style="font-family:DM Mono,monospace;color:var(--danger);font-weight:500">'+Q(e.monto)+'</td>';
+    html+='<td style="color:var(--muted);font-size:11px">'+(e.usuarios?.nombre||'—')+'</td>';
+    if(esAdmin)html+='<td><button class="btn-accion edit" onclick="editarEgreso(\''+e.id+'\')">Editar</button><button class="btn-accion del" onclick="eliminarEgreso(\''+e.id+'\',\''+e.concepto.replace(/'/g,"\\'")+'\')">Desactivar</button></td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tablaEgresos').innerHTML=html;
+}
+
+function abrirModalEgreso(){
+  _egresoEditId=null;
+  document.getElementById('modalEgresoTitulo').textContent='Nuevo egreso';
+  ['eConcepto','eDescripcion'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('eMonto').value='';
+  document.getElementById('eCategoria').value='servicios';
+  document.getElementById('eFecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('ePeriodoIni').value='';
+  document.getElementById('ePeriodoFin').value='';
+  document.getElementById('modalEgreso').classList.add('open');
+}
+
+async function editarEgreso(id){
+  const sb=Nav.getSb();
+  const res=await sb.from('egresos').select('*').eq('id',id).single();
+  if(!res.data)return;
+  const e=res.data;_egresoEditId=id;
+  document.getElementById('modalEgresoTitulo').textContent='Editar egreso';
+  document.getElementById('eConcepto').value=e.concepto||'';
+  document.getElementById('eMonto').value=e.monto||'';
+  document.getElementById('eCategoria').value=e.categoria||'otro';
+  document.getElementById('eFecha').value=e.fecha?e.fecha.substring(0,10):'';
+  document.getElementById('ePeriodoIni').value=e.periodo_ini||'';
+  document.getElementById('ePeriodoFin').value=e.periodo_fin||'';
+  document.getElementById('eDescripcion').value=e.descripcion||'';
+  document.getElementById('modalEgreso').classList.add('open');
+}
+
+async function guardarEgreso(){
+  const concepto=document.getElementById('eConcepto').value.trim();
+  const monto=parseFloat(document.getElementById('eMonto').value||0);
+  if(!concepto){Nav.toast('El concepto es obligatorio.','err');return;}
+  if(!monto){Nav.toast('El monto es obligatorio.','err');return;}
+  const btn=document.getElementById('btnGuardarEgreso');btn.disabled=true;btn.textContent='Guardando...';
+  const datos={concepto,monto,categoria:document.getElementById('eCategoria').value,
+    fecha:document.getElementById('eFecha').value||new Date().toISOString(),
+    periodo_ini:document.getElementById('ePeriodoIni').value||null,
+    periodo_fin:document.getElementById('ePeriodoFin').value||null,
+    descripcion:document.getElementById('eDescripcion').value.trim()||null,
+    usuario_id:Nav.getUser().id};
+  try{
+    const sb=Nav.getSb();let error;
+    if(_egresoEditId){({error}=await sb.from('egresos').update(datos).eq('id',_egresoEditId));}
+    else{({error}=await sb.from('egresos').insert(datos));}
+    if(error)throw error;
+    Nav.toast(_egresoEditId?'Egreso actualizado.':'Egreso registrado.','ok');
+    cerrarModal('modalEgreso');_tabLoaded['egresos']=false;_tabLoaded['resumen']=false;
+    loadEgresos();loadKPIs();
+  }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
+  btn.disabled=false;btn.textContent='Guardar';
+}
+
+async function eliminarEgreso(id,concepto){
+  if(!confirm('Eliminar egreso "'+concepto+'"?'))return;
+  const sb=Nav.getSb();
+  const {error}=await sb.from('egresos').delete().eq('id',id);
+  if(error){Nav.toast('Error al eliminar.','err');return;}
+  Nav.toast('Egreso eliminado.','ok');_tabLoaded['egresos']=false;loadEgresos();loadKPIs();
+}
+
+// NOMINA
+async function initNomina(){
+  const sb=Nav.getSb();
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  document.getElementById('nominaIni').value=ini;
+  document.getElementById('nominaFin').value=hoy;
+  if(esAdmin)document.getElementById('btnNuevaNomina').innerHTML='<button class="btn-primary" onclick="abrirModalNomina()">+ Registrar pago</button>';
+  const [rU,rT]=await Promise.all([
+    sb.from('usuarios').select('id,nombre').eq('activo',true).order('nombre'),
+    sb.from('tipos_pago_nomina').select('id,nombre').eq('activo',true),
+  ]);
+  _usuarios=rU.data||[];_tiposNomina=rT.data||[];
+  // Poblar selects
+  const selU=document.getElementById('nominaUsuario');
+  selU.innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  const selVU=document.getElementById('valesUsuario');
+  selVU.innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  loadNomina();
+}
+
+async function loadNomina(){
+  document.getElementById('tablaNomina').innerHTML='<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  const sb=Nav.getSb();
+  const ini=document.getElementById('nominaIni').value;
+  const fin=document.getElementById('nominaFin').value;
+  const uid=document.getElementById('nominaUsuario').value;
+  let q=sb.from('pagos_nomina').select('id,monto_base,comision,bonos,deducciones,total_pago,descripcion,fecha_pago,usuarios(nombre),tipos_pago_nomina(nombre)').order('fecha_pago',{ascending:false});
+  if(ini)q=q.gte('fecha_pago',ini);
+  if(fin)q=q.lte('fecha_pago',fin+'T23:59:59');
+  if(uid)q=q.eq('usuario_id',uid);
+  const res=await q.limit(100);
+  const data=res.data||[];
+  if(!data.length){document.getElementById('tablaNomina').innerHTML='<div class="loading">Sin pagos en ese periodo.</div>';return;}
+  const total=data.reduce((s,n)=>s+parseFloat(n.total_pago||0),0);
+  let html='<div style="padding:8px 16px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);">'+data.length+' pagos — Total: <strong style="color:var(--warning)">'+Q(total)+'</strong></div>';
+  html+='<table class="tabla"><thead><tr><th>Empleado</th><th>Tipo</th><th>Base</th><th>Comision</th><th>Bonos</th><th>Deduc.</th><th>Total</th><th>Fecha</th></tr></thead><tbody>';
+  data.forEach(n=>{
+    const fecha=n.fecha_pago?new Date(n.fecha_pago).toLocaleDateString('es-GT'):'—';
+    html+='<tr><td style="font-weight:500">'+(n.usuarios?.nombre||'—')+'</td>';
+    html+='<td style="color:var(--muted);font-size:11px">'+(n.tipos_pago_nomina?.nombre||'—')+'</td>';
+    html+='<td style="font-family:DM Mono,monospace">'+Q(n.monto_base)+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;color:var(--success)">'+Q(n.comision)+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;color:var(--info)">'+Q(n.bonos)+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;color:var(--danger)">'+Q(n.deducciones)+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;font-weight:600;color:var(--warning)">'+Q(n.total_pago)+'</td>';
+    html+='<td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tablaNomina').innerHTML=html;
+}
+
+function abrirModalNomina(){
+  _nominaEditId=null;
+  document.getElementById('modalNominaTitulo').textContent='Registrar pago de nomina';
+  const selU=document.getElementById('nUsuario');
+  selU.innerHTML=_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  const selT=document.getElementById('nTipo');
+  selT.innerHTML=_tiposNomina.map(t=>'<option value="'+t.id+'">'+t.nombre+'</option>').join('');
+  ['nBase','nComision','nBonos','nDeducciones'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nDescripcion').value='';
+  document.getElementById('nTotalDisplay').textContent='Q0.00';
+  const hoy=new Date().toISOString().split('T')[0];
+  const ini=hoy.substring(0,7)+'-01';
+  document.getElementById('nIni').value=ini;
+  document.getElementById('nFin').value=hoy;
+  document.getElementById('modalNomina').classList.add('open');
+}
+
+function calcTotal(){
+  const base=parseFloat(document.getElementById('nBase').value||0);
+  const com=parseFloat(document.getElementById('nComision').value||0);
+  const bon=parseFloat(document.getElementById('nBonos').value||0);
+  const ded=parseFloat(document.getElementById('nDeducciones').value||0);
+  const total=base+com+bon-ded;
+  document.getElementById('nTotalDisplay').textContent=Q(total);
+}
+
+async function guardarNomina(){
+  const uid=document.getElementById('nUsuario').value;
+  const base=parseFloat(document.getElementById('nBase').value||0);
+  if(!uid){Nav.toast('Selecciona un empleado.','err');return;}
+  if(!base){Nav.toast('El monto base es obligatorio.','err');return;}
+  const com=parseFloat(document.getElementById('nComision').value||0);
+  const bon=parseFloat(document.getElementById('nBonos').value||0);
+  const ded=parseFloat(document.getElementById('nDeducciones').value||0);
+  const total=base+com+bon-ded;
+  const btn=document.getElementById('btnGuardarNomina');btn.disabled=true;btn.textContent='Guardando...';
+  const datos={usuario_id:uid,tipo_pago_id:document.getElementById('nTipo').value||null,
+    periodo_inicio:document.getElementById('nIni').value||null,
+    periodo_fin:document.getElementById('nFin').value||null,
+    monto_base:base,comision:com,bonos:bon,deducciones:ded,total_pago:total,
+    descripcion:document.getElementById('nDescripcion').value.trim()||null};
+  try{
+    const sb=Nav.getSb();
+    const {error}=await sb.from('pagos_nomina').insert(datos);
+    if(error)throw error;
+    Nav.toast('Pago de nomina registrado.','ok');
+    cerrarModal('modalNomina');_tabLoaded['nomina']=false;loadNomina();loadKPIs();
+  }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
+  btn.disabled=false;btn.textContent='Registrar pago';
+}
+
+// VALES
+async function initVales(){
+  if(!_usuarios.length){
+    const sb=Nav.getSb();
+    const res=await sb.from('usuarios').select('id,nombre').eq('activo',true).order('nombre');
+    _usuarios=res.data||[];
+    const selVU=document.getElementById('valesUsuario');
+    selVU.innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  }
+  loadVales();
+}
+
+async function loadVales(){
+  document.getElementById('tablaVales').innerHTML='<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  const sb=Nav.getSb();
+  const estado=document.getElementById('valesEstado').value;
+  const uid=document.getElementById('valesUsuario').value;
+  let q=sb.from('vales').select('id,monto,motivo,estado,fecha,usuarios!vales_usuario_id_fkey(nombre),usuarios!vales_aprobado_por_fkey(nombre)').order('fecha',{ascending:false}).limit(100);
+  if(estado)q=q.eq('estado',estado);
+  if(uid)q=q.eq('usuario_id',uid);
+  const res=await q;
+  const data=res.data||[];
+  // Badge pendientes
+  const pend=data.filter(v=>v.estado==='pendiente').length;
+  const badge=document.getElementById('valesPendBadge');
+  if(pend>0){badge.textContent=pend+' pendientes';badge.style.display='';}
+  else badge.style.display='none';
+  if(!data.length){document.getElementById('tablaVales').innerHTML='<div class="loading">Sin vales.</div>';return;}
+  const VALE_TAG={pendiente:'tag-warn',aprobado:'tag-green',rechazado:'tag-red'};
+  let html='<table class="tabla"><thead><tr><th>Empleado</th><th>Monto</th><th>Motivo</th><th>Estado</th><th>Fecha</th><th>Aprobado por</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
+  data.forEach(v=>{
+    const fecha=v.fecha?new Date(v.fecha).toLocaleDateString('es-GT'):'—';
+    const solicitante=v.usuarios?.[0]?.nombre||'—';
+    const aprobador=v.usuarios?.[1]?.nombre||'—';
+    html+='<tr><td style="font-weight:500">'+solicitante+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;color:var(--warning);font-weight:500">'+Q(v.monto)+'</td>';
+    html+='<td style="color:var(--muted);font-size:11px">'+(v.motivo||'—')+'</td>';
+    html+='<td><span class="tag '+(VALE_TAG[v.estado]||'tag-muted')+'">'+v.estado+'</span></td>';
+    html+='<td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
+    html+='<td style="font-size:11px;color:var(--muted)">'+(v.estado!=='pendiente'?aprobador:'—')+'</td>';
+    if(esAdmin&&v.estado==='pendiente')html+='<td><button class="btn-accion edit" onclick="abrirVale(\''+v.id+'\',\''+solicitante.replace(/'/g,"\\'")+'\','+v.monto+',\''+v.motivo?.replace(/'/g,"\\'")+'\')">Resolver</button></td>';
+    else if(esAdmin)html+='<td>—</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tablaVales').innerHTML=html;
+}
+
+function abrirVale(id,nombre,monto,motivo){
+  _valeActualId=id;
+  document.getElementById('modalValeTitulo').textContent='Vale de '+nombre;
+  document.getElementById('valeInfo').innerHTML='<strong>'+nombre+'</strong><br>Monto: <strong style="color:var(--warning)">'+Q(monto)+'</strong><br>Motivo: '+(motivo||'Sin motivo');
+  document.getElementById('valeDecision').value='aprobado';
+  document.getElementById('modalVale').classList.add('open');
+}
+
+async function guardarVale(){
+  const decision=document.getElementById('valeDecision').value;
+  const btn=document.getElementById('btnGuardarVale');btn.disabled=true;btn.textContent='Guardando...';
+  try{
+    const sb=Nav.getSb();
+    const {error}=await sb.from('vales').update({estado:decision,aprobado_por:Nav.getUser().id}).eq('id',_valeActualId);
+    if(error)throw error;
+    Nav.toast('Vale '+decision+'.','ok');
+    cerrarModal('modalVale');_tabLoaded['vales']=false;loadVales();loadKPIs();
+  }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
+  btn.disabled=false;btn.textContent='Confirmar';
+}
+
+// INICIO
+loadKPIs();
+loadResumen();
+</script>
+</body>
+</html>
