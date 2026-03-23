@@ -599,7 +599,9 @@ async function loadVales(){
   const sb=Nav.getSb();
   const estado=document.getElementById('valesEstado').value;
   const uid=document.getElementById('valesUsuario').value;
-  let q=sb.from('vales').select('id,monto,motivo,estado,fecha,usuarios!vales_usuario_id_fkey(nombre),usuarios!vales_aprobado_por_fkey(nombre)').order('fecha',{ascending:false}).limit(100);
+  let q=sb.from('vales')
+  .select('id,monto,motivo,estado,fecha,usuario_id,aprobado_por,usuarios(nombre)')
+  .order('fecha',{ascending:false}).limit(100);
   if(estado)q=q.eq('estado',estado);
   if(uid)q=q.eq('usuario_id',uid);
   const res=await q;
