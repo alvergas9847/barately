@@ -34,11 +34,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
 .card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
-.card-body{padding:18px;}
 .filters{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
-.search-input{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
-.search-input:focus{border-color:var(--accent);}
-.search-input::placeholder{color:var(--muted);}
 .filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
 .filter-select option{background:var(--surface2);}
 .filter-date{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Mono',monospace;color:var(--muted);outline:none;}
@@ -51,6 +47,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-accion:hover{color:var(--text);border-color:var(--border2);}
 .btn-accion.edit:hover{color:var(--accent);border-color:var(--accent);}
 .btn-accion.del:hover{color:var(--danger);border-color:var(--danger);}
+.btn-accion.ok:hover{color:var(--success);border-color:var(--success);}
 .tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;text-transform:capitalize;}
 .tag-green{background:rgba(106,255,180,.1);color:var(--success);}
 .tag-red{background:rgba(255,106,106,.12);color:var(--danger);}
@@ -81,6 +78,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
 .btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
 .btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+.btn-success{background:rgba(106,255,180,.1);color:var(--success);border:1px solid rgba(106,255,180,.2);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-danger-outline{background:rgba(255,106,106,.1);color:var(--danger);border:1px solid rgba(255,106,106,.2);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
 .resumen-bar{height:6px;border-radius:99px;background:var(--muted2);overflow:hidden;margin-top:6px;}
 .resumen-fill{height:100%;border-radius:99px;}
 .loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
@@ -103,9 +102,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
   </div>
   <div class="content">
-
     <div class="kpi-grid" id="kpiGrid"><div class="loading"><span class="spinner"></span></div></div>
-
     <div class="tabs">
       <div class="tab active" onclick="switchTab('resumen',this)">Resumen</div>
       <div class="tab" onclick="switchTab('egresos',this)">Egresos</div>
@@ -130,20 +127,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="filters">
           <input class="filter-date" type="date" id="egresoIni"/>
           <input class="filter-date" type="date" id="egresoFin"/>
-          <select class="filter-select" id="egresoCategoria" onchange="filtrarEgresos()">
+          <select class="filter-select" id="egresoCategoria" onchange="loadEgresos()">
             <option value="">Todas las categorias</option>
-            <option value="servicios">Servicios</option>
-            <option value="agua">Agua</option>
-            <option value="luz">Luz</option>
-            <option value="internet">Internet</option>
-            <option value="telefono">Telefono</option>
-            <option value="transporte">Transporte</option>
-            <option value="insumos">Insumos</option>
-            <option value="mantenimiento">Mantenimiento</option>
-            <option value="marketing">Marketing</option>
-            <option value="alquiler">Alquiler</option>
-            <option value="salarios">Salarios</option>
-            <option value="otro">Otro</option>
+            <option value="servicios">Servicios</option><option value="agua">Agua</option>
+            <option value="luz">Luz</option><option value="internet">Internet</option>
+            <option value="telefono">Telefono</option><option value="transporte">Transporte</option>
+            <option value="insumos">Insumos</option><option value="mantenimiento">Mantenimiento</option>
+            <option value="marketing">Marketing</option><option value="alquiler">Alquiler</option>
+            <option value="salarios">Salarios</option><option value="otro">Otro</option>
           </select>
           <button class="btn-primary" onclick="loadEgresos()" style="padding:7px 14px;font-size:12px;">Buscar</button>
         </div>
@@ -175,7 +166,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
       <div class="card">
         <div class="card-hdr">
           <div class="card-title">Vales / Adelantos</div>
-          <span id="valesPendBadge" style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:rgba(255,183,106,.12);color:var(--warning);display:none;"></span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span id="valesPendBadge" style="font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:rgba(255,183,106,.12);color:var(--warning);display:none;"></span>
+          </div>
         </div>
         <div class="filters">
           <select class="filter-select" id="valesEstado" onchange="loadVales()">
@@ -191,7 +184,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div id="tablaVales"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -260,16 +252,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   </div>
 </div>
 
-<!-- MODAL APROBAR VALE -->
+<!-- MODAL VALE -->
 <div class="modal-bg" id="modalVale">
   <div class="modal" style="max-width:420px">
     <div class="modal-hdr">
-      <div class="modal-title" id="modalValeTitulo">Aprobar vale</div>
+      <div class="modal-title" id="modalValeTitulo">Vale</div>
       <button class="modal-close" onclick="cerrarModal('modalVale')">&#x2715;</button>
     </div>
     <div class="modal-body">
-      <div id="valeInfo" style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;"></div>
-      <div class="field">
+      <div id="valeInfo" style="background:var(--surface2);border-radius:8px;padding:14px;margin-bottom:14px;font-size:13px;line-height:1.8;"></div>
+      <div class="field" id="valeDecisionWrap">
         <label>Decision *</label>
         <select id="valeDecision">
           <option value="aprobado">Aprobar</option>
@@ -277,23 +269,19 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         </select>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" onclick="cerrarModal('modalVale')">Cancelar</button>
-      <button class="btn-primary" id="btnGuardarVale" onclick="guardarVale()">Confirmar</button>
-    </div>
+    <div class="modal-footer" id="valeFooter"></div>
   </div>
 </div>
 
 <script>
-let _egresos=[], _egresoEditId=null, _nominaEditId=null, _valeActualId=null;
+let _egresos=[], _egresoEditId=null, _nominaEditId=null, _valeActualId=null, _valeEstadoActual=null;
 let _tabLoaded={}, _usuarios=[], _tiposNomina=[];
 const Q=v=>"Q"+parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
 function cerrarModal(id){document.getElementById(id).classList.remove('open');}
 Nav.init('finanzas');
 const esAdmin=Nav.getRol()==='admin';
-const puedeVer=Nav.puede('verFinanzas');
 
-// TABS
+// ── TABS ──────────────────────────────────────────────────────
 function switchTab(id,el){
   ['resumen','egresos','nomina','vales'].forEach(t=>document.getElementById('tab-'+t).style.display=t===id?'':'none');
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -306,7 +294,7 @@ function switchTab(id,el){
   }
 }
 
-// KPIs
+// ── KPIs ──────────────────────────────────────────────────────
 async function loadKPIs(){
   const sb=Nav.getSb();
   const hoy=new Date().toISOString().split('T')[0];
@@ -330,7 +318,7 @@ async function loadKPIs(){
     '<div class="kpi"><div class="kpi-label">Vales pendientes</div><div class="kpi-value" style="color:var(--warning)">'+Q(valesPend)+'</div><div class="kpi-sub">Por aprobar</div></div>';
 }
 
-// RESUMEN
+// ── RESUMEN ───────────────────────────────────────────────────
 async function loadResumen(){
   const sb=Nav.getSb();
   const hoy=new Date().toISOString().split('T')[0];
@@ -339,12 +327,11 @@ async function loadResumen(){
     sb.from('egresos').select('categoria,monto').gte('fecha',ini),
     sb.from('ventas').select('total,pagos_venta(monto,metodos_pago(nombre))').eq('estado','completada').gte('fecha',ini),
   ]);
-  // Egresos por categoria
   const catMap={};
   (rE.data||[]).forEach(e=>{catMap[e.categoria]=(catMap[e.categoria]||0)+parseFloat(e.monto||0);});
   const totalEg=Object.values(catMap).reduce((s,v)=>s+v,0)||1;
   const CAT_COLORS={servicios:'var(--accent)',agua:'var(--info)',luz:'var(--warning)',internet:'var(--success)',transporte:'#ff9f43',insumos:'#a29bfe',mantenimiento:'#fd79a8',marketing:'#00cec9',alquiler:'var(--danger)',salarios:'#fdcb6e',otro:'var(--muted)'};
-  let egHtml='<div class="card"><div class="card-hdr"><div class="card-title">Egresos por categoria</div><span style="font-size:11px;color:var(--muted)">Mes actual</span></div><div class="card-body">';
+  let egHtml='<div class="card"><div class="card-hdr"><div class="card-title">Egresos por categoria</div><span style="font-size:11px;color:var(--muted)">Mes actual</span></div><div style="padding:16px;">';
   Object.entries(catMap).sort((a,b)=>b[1]-a[1]).forEach(([cat,monto])=>{
     const pct=Math.round(monto/totalEg*100);
     const color=CAT_COLORS[cat]||'var(--muted)';
@@ -352,12 +339,11 @@ async function loadResumen(){
   });
   if(!Object.keys(catMap).length)egHtml+='<div style="color:var(--muted);font-size:13px;">Sin egresos este mes.</div>';
   egHtml+='</div></div>';
-  // Ingresos por metodo de pago
   const metMap={};
   (rV.data||[]).forEach(v=>(v.pagos_venta||[]).forEach(p=>{const n=p.metodos_pago?.nombre||'otro';metMap[n]=(metMap[n]||0)+parseFloat(p.monto||0);}));
   const totalMet=Object.values(metMap).reduce((s,v)=>s+v,0)||1;
   const MET_COLORS={efectivo:'var(--success)',tarjeta:'var(--accent)',transferencia:'var(--info)',visalink:'var(--warning)'};
-  let metHtml='<div class="card"><div class="card-hdr"><div class="card-title">Ingresos por metodo de pago</div></div><div class="card-body">';
+  let metHtml='<div class="card"><div class="card-hdr"><div class="card-title">Ingresos por metodo de pago</div></div><div style="padding:16px;">';
   Object.entries(metMap).sort((a,b)=>b[1]-a[1]).forEach(([met,monto])=>{
     const pct=Math.round(monto/totalMet*100);
     const color=MET_COLORS[met]||'var(--muted)';
@@ -366,14 +352,12 @@ async function loadResumen(){
   if(!Object.keys(metMap).length)metHtml+='<div style="color:var(--muted);font-size:13px;">Sin ingresos este mes.</div>';
   metHtml+='</div></div>';
   document.getElementById('resumenGrid').innerHTML=egHtml+metHtml;
-  document.getElementById('resumenGrid').style.gridTemplateColumns='1fr 1fr';
 }
 
-// EGRESOS
+// ── EGRESOS ───────────────────────────────────────────────────
 function initEgresos(){
   const hoy=new Date().toISOString().split('T')[0];
-  const ini=hoy.substring(0,7)+'-01';
-  document.getElementById('egresoIni').value=ini;
+  document.getElementById('egresoIni').value=hoy.substring(0,7)+'-01';
   document.getElementById('egresoFin').value=hoy;
   if(esAdmin)document.getElementById('btnNuevoEgreso').innerHTML='<button class="btn-primary" onclick="abrirModalEgreso()">+ Nuevo egreso</button>';
   loadEgresos();
@@ -391,10 +375,6 @@ async function loadEgresos(){
   if(cat)q=q.eq('categoria',cat);
   const res=await q.limit(100);
   _egresos=res.data||[];
-  filtrarEgresos();
-}
-
-function filtrarEgresos(){
   renderEgresos(_egresos);
 }
 
@@ -407,12 +387,13 @@ function renderEgresos(data){
   html+='<table class="tabla"><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoria</th><th>Monto</th><th>Registrado por</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
   data.forEach(e=>{
     const fecha=e.fecha?new Date(e.fecha).toLocaleDateString('es-GT'):'—';
-    html+='<tr><td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
-    html+='<td style="font-weight:500">'+e.concepto+'<br><span style="font-size:10px;color:var(--muted)">'+(e.descripcion||'')+'</span></td>';
+    html+='<tr>';
+    html+='<td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
+    html+='<td style="font-weight:500">'+e.concepto+(e.descripcion?'<br><span style="font-size:10px;color:var(--muted)">'+e.descripcion+'</span>':'')+'</td>';
     html+='<td><span class="tag '+(CAT_TAG[e.categoria]||'tag-muted')+'">'+e.categoria+'</span></td>';
     html+='<td style="font-family:DM Mono,monospace;color:var(--danger);font-weight:500">'+Q(e.monto)+'</td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(e.usuarios?.nombre||'—')+'</td>';
-    if(esAdmin)html+='<td><button class="btn-accion edit" onclick="editarEgreso(\''+e.id+'\')">Editar</button><button class="btn-accion del" onclick="eliminarEgreso(\''+e.id+'\',\''+e.concepto.replace(/'/g,"\\'")+'\')">Desactivar</button></td>';
+    if(esAdmin)html+='<td><button class="btn-accion edit" onclick="editarEgreso(\''+e.id+'\')">Editar</button><button class="btn-accion del" onclick="eliminarEgreso(\''+e.id+'\',\''+e.concepto.replace(/'/g,"\\'")+'\')">Eliminar</button></td>';
     html+='</tr>';
   });
   html+='</tbody></table>';
@@ -479,24 +460,21 @@ async function eliminarEgreso(id,concepto){
   Nav.toast('Egreso eliminado.','ok');_tabLoaded['egresos']=false;loadEgresos();loadKPIs();
 }
 
-// NOMINA
+// ── NOMINA ────────────────────────────────────────────────────
 async function initNomina(){
   const sb=Nav.getSb();
   const hoy=new Date().toISOString().split('T')[0];
-  const ini=hoy.substring(0,7)+'-01';
-  document.getElementById('nominaIni').value=ini;
+  document.getElementById('nominaIni').value=hoy.substring(0,7)+'-01';
   document.getElementById('nominaFin').value=hoy;
   if(esAdmin)document.getElementById('btnNuevaNomina').innerHTML='<button class="btn-primary" onclick="abrirModalNomina()">+ Registrar pago</button>';
   const [rU,rT]=await Promise.all([
     sb.from('usuarios').select('id,nombre').eq('activo',true).order('nombre'),
     sb.from('tipos_pago_nomina').select('id,nombre').eq('activo',true),
   ]);
-  _usuarios=rU.data||[];_tiposNomina=rT.data||[];
-  // Poblar selects
-  const selU=document.getElementById('nominaUsuario');
-  selU.innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
-  const selVU=document.getElementById('valesUsuario');
-  selVU.innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  _usuarios=rU.data||[];
+  _tiposNomina=rT.data||[];
+  document.getElementById('nominaUsuario').innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  document.getElementById('valesUsuario').innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
   loadNomina();
 }
 
@@ -515,10 +493,11 @@ async function loadNomina(){
   if(!data.length){document.getElementById('tablaNomina').innerHTML='<div class="loading">Sin pagos en ese periodo.</div>';return;}
   const total=data.reduce((s,n)=>s+parseFloat(n.total_pago||0),0);
   let html='<div style="padding:8px 16px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);">'+data.length+' pagos — Total: <strong style="color:var(--warning)">'+Q(total)+'</strong></div>';
-  html+='<table class="tabla"><thead><tr><th>Empleado</th><th>Tipo</th><th>Base</th><th>Comision</th><th>Bonos</th><th>Deduc.</th><th>Total</th>'<th>Fecha</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead>'<tbody>';
+  html+='<table class="tabla"><thead><tr><th>Empleado</th><th>Tipo</th><th>Base</th><th>Comision</th><th>Bonos</th><th>Deduc.</th><th>Total</th><th>Fecha</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
   data.forEach(n=>{
     const fecha=n.fecha_pago?new Date(n.fecha_pago).toLocaleDateString('es-GT'):'—';
-    html+='<tr><td style="font-weight:500">'+(n.usuarios?.nombre||'—')+'</td>';
+    html+='<tr>';
+    html+='<td style="font-weight:500">'+(n.usuarios?.nombre||'—')+'</td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(n.tipos_pago_nomina?.nombre||'—')+'</td>';
     html+='<td style="font-family:DM Mono,monospace">'+Q(n.monto_base)+'</td>';
     html+='<td style="font-family:DM Mono,monospace;color:var(--success)">'+Q(n.comision)+'</td>';
@@ -526,8 +505,8 @@ async function loadNomina(){
     html+='<td style="font-family:DM Mono,monospace;color:var(--danger)">'+Q(n.deducciones)+'</td>';
     html+='<td style="font-family:DM Mono,monospace;font-weight:600;color:var(--warning)">'+Q(n.total_pago)+'</td>';
     html+='<td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
-if(esAdmin)html+='<td><button class="btn-accion del" onclick="eliminarNomina(\''+n.id+'\')">Eliminar</button></td>';
-html+='</tr>';
+    if(esAdmin)html+='<td><button class="btn-accion edit" onclick="editarNomina(\''+n.id+'\')">Editar</button><button class="btn-accion del" onclick="eliminarNomina(\''+n.id+'\')">Eliminar</button></td>';
+    html+='</tr>';
   });
   html+='</tbody></table>';
   document.getElementById('tablaNomina').innerHTML=html;
@@ -536,17 +515,33 @@ html+='</tr>';
 function abrirModalNomina(){
   _nominaEditId=null;
   document.getElementById('modalNominaTitulo').textContent='Registrar pago de nomina';
-  const selU=document.getElementById('nUsuario');
-  selU.innerHTML=_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
-  const selT=document.getElementById('nTipo');
-  selT.innerHTML=_tiposNomina.map(t=>'<option value="'+t.id+'">'+t.nombre+'</option>').join('');
+  document.getElementById('nUsuario').innerHTML=_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+  document.getElementById('nTipo').innerHTML=_tiposNomina.map(t=>'<option value="'+t.id+'">'+t.nombre+'</option>').join('');
   ['nBase','nComision','nBonos','nDeducciones'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('nDescripcion').value='';
   document.getElementById('nTotalDisplay').textContent='Q0.00';
   const hoy=new Date().toISOString().split('T')[0];
-  const ini=hoy.substring(0,7)+'-01';
-  document.getElementById('nIni').value=ini;
+  document.getElementById('nIni').value=hoy.substring(0,7)+'-01';
   document.getElementById('nFin').value=hoy;
+  document.getElementById('modalNomina').classList.add('open');
+}
+
+async function editarNomina(id){
+  const sb=Nav.getSb();
+  const res=await sb.from('pagos_nomina').select('*').eq('id',id).single();
+  if(!res.data)return;
+  const n=res.data;_nominaEditId=id;
+  document.getElementById('modalNominaTitulo').textContent='Editar pago de nomina';
+  document.getElementById('nUsuario').innerHTML=_usuarios.map(u=>'<option value="'+u.id+'"'+(u.id===n.usuario_id?' selected':'')+'>'+u.nombre+'</option>').join('');
+  document.getElementById('nTipo').innerHTML=_tiposNomina.map(t=>'<option value="'+t.id+'"'+(t.id===n.tipo_pago_id?' selected':'')+'>'+t.nombre+'</option>').join('');
+  document.getElementById('nBase').value=n.monto_base||'';
+  document.getElementById('nComision').value=n.comision||'';
+  document.getElementById('nBonos').value=n.bonos||'';
+  document.getElementById('nDeducciones').value=n.deducciones||'';
+  document.getElementById('nDescripcion').value=n.descripcion||'';
+  document.getElementById('nIni').value=n.periodo_inicio||'';
+  document.getElementById('nFin').value=n.periodo_fin||'';
+  calcTotal();
   document.getElementById('modalNomina').classList.add('open');
 }
 
@@ -555,8 +550,7 @@ function calcTotal(){
   const com=parseFloat(document.getElementById('nComision').value||0);
   const bon=parseFloat(document.getElementById('nBonos').value||0);
   const ded=parseFloat(document.getElementById('nDeducciones').value||0);
-  const total=base+com+bon-ded;
-  document.getElementById('nTotalDisplay').textContent=Q(total);
+  document.getElementById('nTotalDisplay').textContent=Q(base+com+bon-ded);
 }
 
 async function guardarNomina(){
@@ -567,31 +561,38 @@ async function guardarNomina(){
   const com=parseFloat(document.getElementById('nComision').value||0);
   const bon=parseFloat(document.getElementById('nBonos').value||0);
   const ded=parseFloat(document.getElementById('nDeducciones').value||0);
-  const total=base+com+bon-ded;
   const btn=document.getElementById('btnGuardarNomina');btn.disabled=true;btn.textContent='Guardando...';
   const datos={usuario_id:uid,tipo_pago_id:document.getElementById('nTipo').value||null,
     periodo_inicio:document.getElementById('nIni').value||null,
     periodo_fin:document.getElementById('nFin').value||null,
-    monto_base:base,comision:com,bonos:bon,deducciones:ded,total_pago:total,
+    monto_base:base,comision:com,bonos:bon,deducciones:ded,total_pago:base+com+bon-ded,
     descripcion:document.getElementById('nDescripcion').value.trim()||null};
   try{
-    const sb=Nav.getSb();
-    const {error}=await sb.from('pagos_nomina').insert(datos);
+    const sb=Nav.getSb();let error;
+    if(_nominaEditId){({error}=await sb.from('pagos_nomina').update(datos).eq('id',_nominaEditId));}
+    else{({error}=await sb.from('pagos_nomina').insert(datos));}
     if(error)throw error;
-    Nav.toast('Pago de nomina registrado.','ok');
+    Nav.toast(_nominaEditId?'Pago actualizado.':'Pago registrado.','ok');
     cerrarModal('modalNomina');_tabLoaded['nomina']=false;loadNomina();loadKPIs();
   }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
   btn.disabled=false;btn.textContent='Registrar pago';
 }
 
-// VALES
+async function eliminarNomina(id){
+  if(!confirm('Eliminar este pago de nomina?'))return;
+  const sb=Nav.getSb();
+  const {error}=await sb.from('pagos_nomina').delete().eq('id',id);
+  if(error){Nav.toast('Error al eliminar.','err');return;}
+  Nav.toast('Pago eliminado.','ok');_tabLoaded['nomina']=false;loadNomina();loadKPIs();
+}
+
+// ── VALES ─────────────────────────────────────────────────────
 async function initVales(){
   if(!_usuarios.length){
     const sb=Nav.getSb();
     const res=await sb.from('usuarios').select('id,nombre').eq('activo',true).order('nombre');
     _usuarios=res.data||[];
-    const selVU=document.getElementById('valesUsuario');
-    selVU.innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
+    document.getElementById('valesUsuario').innerHTML='<option value="">Todos los empleados</option>'+_usuarios.map(u=>'<option value="'+u.id+'">'+u.nombre+'</option>').join('');
   }
   loadVales();
 }
@@ -601,50 +602,61 @@ async function loadVales(){
   const sb=Nav.getSb();
   const estado=document.getElementById('valesEstado').value;
   const uid=document.getElementById('valesUsuario').value;
-  let q=sb.from('vales')
-  .select('id,monto,motivo,estado,fecha,usuario_id,aprobado_por,usuarios(nombre)')
-  .order('fecha',{ascending:false}).limit(100);
+  let q=sb.from('vales').select('id,monto,motivo,estado,fecha,usuario_id,aprobado_por,usuarios(nombre)').order('fecha',{ascending:false}).limit(100);
   if(estado)q=q.eq('estado',estado);
   if(uid)q=q.eq('usuario_id',uid);
   const res=await q;
   const data=res.data||[];
-  // Badge pendientes
   const pend=data.filter(v=>v.estado==='pendiente').length;
   const badge=document.getElementById('valesPendBadge');
   if(pend>0){badge.textContent=pend+' pendientes';badge.style.display='';}
   else badge.style.display='none';
   if(!data.length){document.getElementById('tablaVales').innerHTML='<div class="loading">Sin vales.</div>';return;}
   const VALE_TAG={pendiente:'tag-warn',aprobado:'tag-green',rechazado:'tag-red'};
-  let html='<table class="tabla"><thead><tr><th>Empleado</th><th>Monto</th><th>Motivo</th><th>Estado</th><th>Fecha</th><th>Aprobado por</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
+  let html='<table class="tabla"><thead><tr><th>Empleado</th><th>Monto</th><th>Motivo</th><th>Estado</th><th>Fecha</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
   data.forEach(v=>{
     const fecha=v.fecha?new Date(v.fecha).toLocaleDateString('es-GT'):'—';
-    const solicitante=v.usuarios?.nombre||'—';
-    const aprobador='—';
-    html+='<tr><td style="font-weight:500">'+solicitante+'</td>';
+    const nombre=v.usuarios?.nombre||'—';
+    html+='<tr>';
+    html+='<td style="font-weight:500">'+nombre+'</td>';
     html+='<td style="font-family:DM Mono,monospace;color:var(--warning);font-weight:500">'+Q(v.monto)+'</td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(v.motivo||'—')+'</td>';
     html+='<td><span class="tag '+(VALE_TAG[v.estado]||'tag-muted')+'">'+v.estado+'</span></td>';
     html+='<td style="font-size:11px;color:var(--muted);font-family:DM Mono,monospace">'+fecha+'</td>';
-    html+='<td style="font-size:11px;color:var(--muted)">'+(v.estado!=='pendiente'?aprobador:'—')+'</td>';
-    if(esAdmin&&v.estado==='pendiente')html+='<td><button class="btn-accion edit" onclick="abrirVale(\''+v.id+'\',\''+solicitante.replace(/'/g,"\\'")+'\','+v.monto+',\''+v.motivo?.replace(/'/g,"\\'")+'\')">Resolver</button></td>';
-    else if(esAdmin)html+='<td>—</td>';
+    if(esAdmin){
+      if(v.estado==='pendiente'){
+        html+='<td>'
+          +'<button class="btn-accion ok" onclick="resolverVale(\''+v.id+'\',\''+nombre.replace(/'/g,"\\'")+'\','+v.monto+',\''+( v.motivo||'').replace(/'/g,"\\'")+'\')">Resolver</button>'
+          +'</td>';
+      } else {
+        html+='<td><button class="btn-accion del" onclick="eliminarVale(\''+v.id+'\')">Eliminar</button></td>';
+      }
+    }
     html+='</tr>';
   });
   html+='</tbody></table>';
   document.getElementById('tablaVales').innerHTML=html;
 }
 
-function abrirVale(id,nombre,monto,motivo){
+function resolverVale(id,nombre,monto,motivo){
   _valeActualId=id;
-  document.getElementById('modalValeTitulo').textContent='Vale de '+nombre;
-  document.getElementById('valeInfo').innerHTML='<strong>'+nombre+'</strong><br>Monto: <strong style="color:var(--warning)">'+Q(monto)+'</strong><br>Motivo: '+(motivo||'Sin motivo');
+  document.getElementById('modalValeTitulo').textContent='Resolver vale — '+nombre;
+  document.getElementById('valeInfo').innerHTML=
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted)">Empleado</span><strong>'+nombre+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span style="color:var(--muted)">Monto solicitado</span><strong style="color:var(--warning)">'+Q(monto)+'</strong></div>'+
+    '<div style="display:flex;justify-content:space-between;"><span style="color:var(--muted)">Motivo</span><span style="color:var(--muted);font-size:12px">'+(motivo||'Sin motivo')+'</span></div>';
+  document.getElementById('valeDecisionWrap').style.display='flex';
   document.getElementById('valeDecision').value='aprobado';
+  document.getElementById('valeFooter').innerHTML=
+    '<button class="btn-secondary" onclick="cerrarModal(\'modalVale\')">Cancelar</button>'+
+    '<button class="btn-danger-outline" onclick="confirmarVale(\'rechazado\')">Rechazar</button>'+
+    '<button class="btn-success" onclick="confirmarVale(\'aprobado\')">Aprobar</button>';
   document.getElementById('modalVale').classList.add('open');
 }
 
-async function guardarVale(){
-  const decision=document.getElementById('valeDecision').value;
-  const btn=document.getElementById('btnGuardarVale');btn.disabled=true;btn.textContent='Guardando...';
+async function confirmarVale(decision){
+  const btn=document.querySelectorAll('#valeFooter button');
+  btn.forEach(b=>b.disabled=true);
   try{
     const sb=Nav.getSb();
     const {error}=await sb.from('vales').update({estado:decision,aprobado_por:Nav.getUser().id}).eq('id',_valeActualId);
@@ -652,19 +664,18 @@ async function guardarVale(){
     Nav.toast('Vale '+decision+'.','ok');
     cerrarModal('modalVale');_tabLoaded['vales']=false;loadVales();loadKPIs();
   }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
-  btn.disabled=false;btn.textContent='Confirmar';
+  btn.forEach(b=>b.disabled=false);
 }
 
-async function eliminarNomina(id){
-  if(!confirm('Eliminar este pago de nomina?'))return;
+async function eliminarVale(id){
+  if(!confirm('Eliminar este vale?'))return;
   const sb=Nav.getSb();
-  const {error}=await sb.from('pagos_nomina').delete().eq('id',id);
+  const {error}=await sb.from('vales').delete().eq('id',id);
   if(error){Nav.toast('Error al eliminar.','err');return;}
-  Nav.toast('Pago eliminado.','ok');
-  _tabLoaded['nomina']=false;loadNomina();loadKPIs();
-}  
+  Nav.toast('Vale eliminado.','ok');_tabLoaded['vales']=false;loadVales();loadKPIs();
+}
 
-// INICIO
+// ── INICIO ────────────────────────────────────────────────────
 loadKPIs();
 loadResumen();
 </script>
