@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARATELY — Usuarios</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="nav.js"></script>
+<script>document.write(Nav.sidebarCSS())</script>
+<style>
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1a1a24;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);--accent:#7c6aff;--accent-glow:rgba(124,106,255,0.2);--text:#f0f0f8;--muted:#6b6b80;--muted2:#3a3a50;--success:#6affb4;--danger:#ff6a6a;--warning:#ffb76a;--info:#6ab4ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+.nav-main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+.topbar{padding:16px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50;}
+.page-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;}
+.nav-hamburger{display:none;background:none;border:none;color:var(--text);font-size:20px;cursor:pointer;}
+.topbar-right{display:flex;align-items:center;gap:12px;}
+.fecha-chip{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:4px 12px;}
+.btn-logout{font-size:12px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:20px;padding:5px 12px;cursor:pointer;transition:all .2s;}
+.btn-logout:hover{color:var(--danger);border-color:var(--danger);}
+.content{padding:24px 28px;flex:1;}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;line-height:1;}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:20px;flex-wrap:wrap;}
+.tab{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .2s;user-select:none;}
+.tab.active{background:var(--accent);color:#fff;}
+.tab:hover:not(.active){color:var(--text);background:var(--surface2);}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px;}
+.card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.filters{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center;}
+.search-input{flex:1;min-width:180px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;}
+.search-input:focus{border-color:var(--accent);}
+.search-input::placeholder{color:var(--muted);}
+.filter-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);outline:none;cursor:pointer;}
+.filter-select option{background:var(--surface2);}
+.tabla{width:100%;border-collapse:collapse;}
+.tabla th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.tabla td{padding:10px 12px;font-size:12px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;}
+.tabla tr:last-child td{border-bottom:none;}
+.tabla tr:hover td{background:rgba(255,255,255,0.02);}
+.av{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.btn-accion{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 9px;font-size:11px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;margin-right:3px;}
+.btn-accion:hover{color:var(--text);border-color:var(--border2);}
+.btn-accion.edit:hover{color:var(--accent);border-color:var(--accent);}
+.btn-accion.del:hover{color:var(--danger);border-color:var(--danger);}
+.btn-accion.key:hover{color:var(--warning);border-color:var(--warning);}
+.tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;text-transform:capitalize;}
+.tag-admin{background:rgba(124,106,255,.15);color:#b06aff;}
+.tag-encargado{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-vendedor{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-practicante{background:rgba(255,255,255,.06);color:var(--muted);}
+.tag-contador{background:rgba(255,106,106,.1);color:var(--danger);}
+.estado-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:200;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;animation:fadeUp .22s ease both;}
+.modal-sm{max-width:420px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+.modal-hdr{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1;}
+.modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:20px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;position:sticky;bottom:0;background:var(--surface);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-full{grid-column:1/-1;}
+.form-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s;width:100%;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field select option{background:var(--surface2);}
+.field input::placeholder{color:var(--muted);}
+.field textarea{resize:vertical;min-height:60px;}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+.btn-secondary{background:none;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 18px;font-size:13px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--border2);}
+.sep{grid-column:1/-1;border-top:1px solid var(--border);padding-top:12px;margin-top:4px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.key-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.key-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;letter-spacing:.1em;color:var(--accent);margin:8px 0;}
+.key-copy{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+.perfil-header{display:flex;align-items:center;gap:16px;padding:16px;background:var(--surface2);border-radius:10px;margin-bottom:16px;}
+.perfil-av{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;flex-shrink:0;}
+.perfil-nombre{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.perfil-rol{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.info-item{background:var(--surface2);border-radius:8px;padding:10px 12px;}
+.info-item label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px;}
+.info-item span{font-size:13px;}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@media(max-width:900px){.nav-main{margin-left:0;}.nav-hamburger{display:block!important;}.content{padding:16px;}.topbar{padding:12px 16px;}.form-grid,.form-3{grid-template-columns:1fr;}.info-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<script>document.write(Nav.sidebarHTML())</script>
+<div class="nav-main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="nav-hamburger" onclick="Nav.toggleSidebar()">&#9776;</button>
+      <div class="page-title">Usuarios</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fecha-chip" id="navFecha"></div>
+      <button class="btn-logout" onclick="Nav.logout()">Salir</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <div class="kpi-grid" id="kpiGrid"><div class="loading"><span class="spinner"></span></div></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('usuarios',this)">Usuarios</div>
+      <div class="tab" onclick="switchTab('roles',this)">Roles</div>
+    </div>
+
+    <!-- USUARIOS -->
+    <div id="tab-usuarios">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Equipo BARATELY</div>
+          <button class="btn-primary" onclick="abrirModalUsuario()">+ Nuevo usuario</button>
+        </div>
+        <div class="filters">
+          <input class="search-input" id="searchUsuario" placeholder="Buscar nombre, telefono o DPI..." oninput="filtrarUsuarios()"/>
+          <select class="filter-select" id="filtroRol" onchange="filtrarUsuarios()">
+            <option value="">Todos los roles</option>
+            <option value="admin">Admin</option>
+            <option value="encargado">Encargado</option>
+            <option value="vendedor">Vendedor</option>
+            <option value="practicante">Practicante</option>
+            <option value="contador">Contador</option>
+          </select>
+          <select class="filter-select" id="filtroActivo" onchange="filtrarUsuarios()">
+            <option value="">Todos</option>
+            <option value="true">Activos</option>
+            <option value="false">Inactivos</option>
+          </select>
+        </div>
+        <div id="tablaUsuarios"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+    <!-- ROLES -->
+    <div id="tab-roles" style="display:none">
+      <div class="card">
+        <div class="card-hdr">
+          <div class="card-title">Roles del sistema</div>
+        </div>
+        <div id="tablaRoles"><div class="loading"><span class="spinner"></span>Cargando...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="modal-bg" id="modalUsuario">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalUsuarioTitulo">Nuevo usuario</div>
+      <button class="modal-close" onclick="cerrarModal('modalUsuario')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <!-- Datos personales -->
+        <div class="sep">Datos personales</div>
+        <div class="field"><label>Nombre *</label><input type="text" id="uNombre" placeholder="Nombre"/></div>
+        <div class="field"><label>Apellidos</label><input type="text" id="uApellidos" placeholder="Apellidos"/></div>
+        <div class="field"><label>DPI</label><input type="text" id="uDpi" placeholder="0000 00000 0000" style="font-family:'DM Mono',monospace;" maxlength="15"/></div>
+        <div class="field"><label>NIT</label><input type="text" id="uNit" placeholder="12345678-9" style="font-family:'DM Mono',monospace;"/></div>
+        <div class="field"><label>Telefono</label><input type="tel" id="uTelefono" placeholder="12345678" maxlength="8"/></div>
+        <div class="field"><label>Telefono 2</label><input type="tel" id="uTelefono2" placeholder="12345678" maxlength="8"/></div>
+        <div class="field"><label>WhatsApp</label><input type="tel" id="uWhatsapp" placeholder="12345678" maxlength="8"/></div>
+        <div class="field"><label>Email</label><input type="email" id="uEmail" placeholder="correo@ejemplo.com"/></div>
+        <div class="field form-full"><label>Direccion</label><input type="text" id="uDireccion" placeholder="Direccion completa"/></div>
+
+        <!-- Acceso al sistema -->
+        <div class="sep">Acceso al sistema</div>
+        <div class="field"><label>Rol *</label><select id="uRol"></select></div>
+        <div class="field"><label>Estado</label>
+          <select id="uActivo"><option value="true">Activo</option><option value="false">Inactivo</option></select>
+        </div>
+        <div class="field"><label>PIN acceso web</label>
+          <input type="text" id="uPin" placeholder="PIN para panel web" style="font-family:'DM Mono',monospace;letter-spacing:.08em;"/>
+        </div>
+        <div class="field"><label>Clave Telegram (bot)</label>
+          <input type="text" id="uTelegramKey" placeholder="Ej: JUAN2025" style="font-family:'DM Mono',monospace;letter-spacing:.1em;" oninput="this.value=this.value.toUpperCase()"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="cerrarModal('modalUsuario')">Cancelar</button>
+      <button class="btn-primary" id="btnGuardarUsuario" onclick="guardarUsuario()">Guardar usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERFIL -->
+<div class="modal-bg" id="modalPerfil">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">Perfil del usuario</div>
+      <button class="modal-close" onclick="cerrarModal('modalPerfil')">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="perfilBody">
+      <div class="loading"><span class="spinner"></span>Cargando...</div>
+    </div>
+    <div class="modal-footer" id="perfilFooter"></div>
+  </div>
+</div>
+
+<!-- MODAL CLAVES -->
+<div class="modal-bg" id="modalClaves">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modalClavesTitulo">Claves de acceso</div>
+      <button class="modal-close" onclick="cerrarModal('modalClaves')">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Comparte estas claves con el empleado de forma segura. El PIN es para el panel web y la clave Telegram es para el bot.</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="key-box">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">Clave Telegram (bot)</div>
+          <div class="key-val" id="keyTelegramVal">—</div>
+          <button class="key-copy" onclick="copiarClave('keyTelegramVal')">Copiar</button>
+        </div>
+        <div class="key-box">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;">PIN acceso web</div>
+          <div class="key-val" id="keyPinVal">—</div>
+          <button class="key-copy" onclick="copiarClave('keyPinVal')">Copiar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-primary" onclick="cerrarModal('modalClaves')">Listo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _usuarios=[], _roles=[], _editandoId=null, _tabLoaded={};
+const Q=v=>"Q"+parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
+function cerrarModal(id){document.getElementById(id).classList.remove('open');}
+Nav.init('usuarios');
+
+const AV_COLORS=[
+  ['rgba(124,106,255,.2)','#b06aff'],['rgba(106,255,180,.15)','#6affb4'],
+  ['rgba(255,183,106,.15)','#ffb76a'],['rgba(255,106,106,.15)','#ff6a6a'],
+  ['rgba(106,180,255,.15)','#6ab4ff'],
+];
+const ROL_TAG={admin:'tag-admin',encargado:'tag-encargado',vendedor:'tag-vendedor',practicante:'tag-practicante',contador:'tag-contador'};
+
+// TABS
+function switchTab(id,el){
+  ['usuarios','roles'].forEach(t=>document.getElementById('tab-'+t).style.display=t===id?'':'none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(!_tabLoaded[id]){_tabLoaded[id]=true;
+    if(id==='usuarios')loadUsuarios();
+    if(id==='roles')loadRoles();
+  }
+}
+
+// KPIs
+async function loadKPIs(){
+  const sb=Nav.getSb();
+  const [rT,rA,rV,rP]=await Promise.all([
+    sb.from('usuarios').select('id',{count:'exact'}),
+    sb.from('usuarios').select('id',{count:'exact'}).eq('activo',true),
+    sb.from('usuarios').select('id',{count:'exact'}).eq('activo',true).in('roles.nombre',['vendedor','practicante']).select('id'),
+    sb.from('vales').select('id',{count:'exact'}).eq('estado','pendiente'),
+  ]);
+  // Contar por rol
+  const sb2=Nav.getSb();
+  const rRol=await sb2.from('usuarios').select('roles(nombre)').eq('activo',true);
+  const rolCount={};
+  (rRol.data||[]).forEach(u=>{const r=u.roles?.nombre||'otro';rolCount[r]=(rolCount[r]||0)+1;});
+  document.getElementById('kpiGrid').innerHTML=
+    '<div class="kpi"><div class="kpi-label">Total usuarios</div><div class="kpi-value">'+(rT.count||0)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Activos</div><div class="kpi-value" style="color:var(--success)">'+(rA.count||0)+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Vendedores</div><div class="kpi-value" style="color:var(--warning)">'+(( rolCount['vendedor']||0)+(rolCount['practicante']||0))+'</div></div>'+
+    '<div class="kpi"><div class="kpi-label">Vales pendientes</div><div class="kpi-value" style="color:var(--warning)">'+(rP.count||0)+'</div></div>';
+}
+
+// USUARIOS
+async function loadUsuarios(){
+  const sb=Nav.getSb();
+  const [rU,rR]=await Promise.all([
+    sb.from('usuarios').select('id,nombre,apellidos,dpi,nit,telefono,telefono2,email,whatsapp_numero,direccion,rol_id,telegram_key,pin_acceso,activo,ultimo_acceso,roles(nombre)').order('nombre'),
+    sb.from('roles').select('id,nombre,descripcion,activo').order('nombre'),
+  ]);
+  _usuarios=rU.data||[];
+  _roles=rR.data||[];
+  // Poblar select de roles en modal
+  document.getElementById('uRol').innerHTML=_roles.filter(r=>r.activo).map(r=>'<option value="'+r.id+'">'+r.nombre.charAt(0).toUpperCase()+r.nombre.slice(1)+'</option>').join('');
+  filtrarUsuarios();
+}
+
+function filtrarUsuarios(){
+  const txt=document.getElementById('searchUsuario').value.toLowerCase();
+  const rol=document.getElementById('filtroRol').value;
+  const act=document.getElementById('filtroActivo').value;
+  const fil=_usuarios.filter(u=>{
+    const mT=!txt||(u.nombre||'').toLowerCase().includes(txt)||(u.apellidos||'').toLowerCase().includes(txt)||(u.telefono||'').includes(txt)||(u.dpi||'').includes(txt);
+    const mR=!rol||u.roles?.nombre===rol;
+    const mA=act===''||String(u.activo)===act;
+    return mT&&mR&&mA;
+  });
+  renderUsuarios(fil);
+}
+
+function renderUsuarios(data){
+  if(!data.length){document.getElementById('tablaUsuarios').innerHTML='<div class="loading">Sin usuarios.</div>';return;}
+  let html='<table class="tabla"><thead><tr><th>Usuario</th><th>Contacto</th><th>Rol</th><th>Telegram key</th><th>PIN web</th><th>Ultimo acceso</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+  data.forEach((u,i)=>{
+    const [bg,tc]=AV_COLORS[i%AV_COLORS.length];
+    const nombre=(u.nombre+' '+(u.apellidos||'')).trim();
+    const rol=u.roles?.nombre||'—';
+    const acceso=u.ultimo_acceso?new Date(u.ultimo_acceso).toLocaleDateString('es-GT'):'Nunca';
+    html+='<tr>';
+    html+='<td><div style="display:flex;align-items:center;gap:10px;"><div class="av" style="background:'+bg+';color:'+tc+'">'+u.nombre[0].toUpperCase()+'</div><div><div style="font-weight:500">'+nombre+'</div><div style="font-size:10px;color:var(--muted)">'+(u.email||u.nit||'')+'</div></div></div></td>';
+    html+='<td style="font-size:11px;color:var(--muted)">'+(u.telefono||'—')+(u.whatsapp_numero&&u.whatsapp_numero!==u.telefono?'<br>WA: '+u.whatsapp_numero:'')+'</td>';
+    html+='<td><span class="tag '+(ROL_TAG[rol]||'tag-muted')+'">'+rol+'</span></td>';
+    html+='<td style="font-family:DM Mono,monospace;font-size:12px">'+(u.telegram_key||'—')+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;font-size:12px">'+(u.pin_acceso||'—')+'</td>';
+    html+='<td style="font-size:11px;color:var(--muted)">'+acceso+'</td>';
+    html+='<td><span class="estado-dot" style="background:'+(u.activo?'var(--success)':'var(--muted)')+'"></span>'+(u.activo?'Activo':'Inactivo')+'</td>';
+    html+='<td>';
+    html+='<button class="btn-accion" onclick="verPerfil(\''+u.id+'\')">Ver</button>';
+    html+='<button class="btn-accion edit" onclick="editarUsuario(\''+u.id+'\')">Editar</button>';
+    html+='<button class="btn-accion key" onclick="verClaves(\''+u.id+'\',\''+nombre.replace(/'/g,"\\'")+'\')">Claves</button>';
+    html+='<button class="btn-accion del" onclick="toggleUsuario(\''+u.id+'\','+u.activo+',\''+nombre.replace(/'/g,"\\'")+'\')"> '+(u.activo?'Desactivar':'Activar')+'</button>';
+    html+='</td></tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tablaUsuarios').innerHTML=html;
+}
+
+// MODAL NUEVO/EDITAR
+function abrirModalUsuario(){
+  _editandoId=null;
+  document.getElementById('modalUsuarioTitulo').textContent='Nuevo usuario';
+  ['uNombre','uApellidos','uDpi','uNit','uTelefono','uTelefono2','uWhatsapp','uEmail','uDireccion','uPin','uTelegramKey'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('uActivo').value='true';
+  if(_roles.length)document.getElementById('uRol').value=_roles.find(r=>r.nombre==='vendedor')?.id||_roles[0].id;
+  document.getElementById('modalUsuario').classList.add('open');
+}
+
+async function editarUsuario(id){
+  const sb=Nav.getSb();
+  const res=await sb.from('usuarios').select('*').eq('id',id).single();
+  if(!res.data)return;
+  const u=res.data;_editandoId=id;
+  document.getElementById('modalUsuarioTitulo').textContent='Editar usuario';
+  document.getElementById('uNombre').value=u.nombre||'';
+  document.getElementById('uApellidos').value=u.apellidos||'';
+  document.getElementById('uDpi').value=u.dpi||'';
+  document.getElementById('uNit').value=u.nit||'';
+  document.getElementById('uTelefono').value=u.telefono||'';
+  document.getElementById('uTelefono2').value=u.telefono2||'';
+  document.getElementById('uWhatsapp').value=u.whatsapp_numero||'';
+  document.getElementById('uEmail').value=u.email||'';
+  document.getElementById('uDireccion').value=u.direccion||'';
+  document.getElementById('uPin').value=u.pin_acceso||'';
+  document.getElementById('uTelegramKey').value=u.telegram_key||'';
+  document.getElementById('uRol').value=u.rol_id||'';
+  document.getElementById('uActivo').value=u.activo?'true':'false';
+  document.getElementById('modalUsuario').classList.add('open');
+}
+
+async function guardarUsuario(){
+  const nombre=document.getElementById('uNombre').value.trim();
+  const rolId=document.getElementById('uRol').value;
+  if(!nombre){Nav.toast('El nombre es obligatorio.','err');return;}
+  if(!rolId){Nav.toast('Selecciona un rol.','err');return;}
+  const btn=document.getElementById('btnGuardarUsuario');btn.disabled=true;btn.textContent='Guardando...';
+  const datos={
+    nombre,
+    apellidos:      document.getElementById('uApellidos').value.trim()||null,
+    dpi:            document.getElementById('uDpi').value.trim()||null,
+    nit:            document.getElementById('uNit').value.trim()||null,
+    telefono:       document.getElementById('uTelefono').value.trim()||null,
+    telefono2:      document.getElementById('uTelefono2').value.trim()||null,
+    whatsapp_numero:document.getElementById('uWhatsapp').value.trim()||null,
+    email:          document.getElementById('uEmail').value.trim()||null,
+    direccion:      document.getElementById('uDireccion').value.trim()||null,
+    pin_acceso:     document.getElementById('uPin').value.trim()||null,
+    telegram_key:   document.getElementById('uTelegramKey').value.trim()||null,
+    rol_id:         rolId,
+    activo:         document.getElementById('uActivo').value==='true',
+  };
+  try{
+    const sb=Nav.getSb();let error;
+    if(_editandoId){({error}=await sb.from('usuarios').update(datos).eq('id',_editandoId));}
+    else{({error}=await sb.from('usuarios').insert(datos));}
+    if(error)throw error;
+    Nav.toast(_editandoId?'Usuario actualizado.':'Usuario creado.','ok');
+    cerrarModal('modalUsuario');
+    _tabLoaded['usuarios']=false;loadUsuarios();loadKPIs();
+  }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
+  btn.disabled=false;btn.textContent='Guardar usuario';
+}
+
+async function toggleUsuario(id,activo,nombre){
+  if(!confirm((activo?'Desactivar':'Activar')+' a "'+nombre+'"?'))return;
+  const sb=Nav.getSb();
+  const {error}=await sb.from('usuarios').update({activo:!activo}).eq('id',id);
+  if(error){Nav.toast('Error.','err');return;}
+  Nav.toast('Usuario '+(activo?'desactivado':'activado')+'.','ok');
+  _tabLoaded['usuarios']=false;loadUsuarios();loadKPIs();
+}
+
+// VER PERFIL
+async function verPerfil(id){
+  document.getElementById('perfilBody').innerHTML='<div class="loading"><span class="spinner"></span>Cargando...</div>';
+  document.getElementById('perfilFooter').innerHTML='';
+  document.getElementById('modalPerfil').classList.add('open');
+  const sb=Nav.getSb();
+  const [rU,rV,rC,rN]=await Promise.all([
+    sb.from('usuarios').select('*,roles(nombre,descripcion)').eq('id',id).single(),
+    sb.from('ventas').select('total').eq('usuario_id',id).eq('estado','completada').gte('fecha',new Date().toISOString().substring(0,7)+'-01'),
+    sb.from('comisiones_venta').select('monto,pagada').eq('usuario_id',id).gte('creado_en',new Date().toISOString().substring(0,7)+'-01'),
+    sb.from('vales').select('monto,estado').eq('usuario_id',id).order('fecha',{ascending:false}).limit(5),
+  ]);
+  const u=rU.data||{};
+  const rol=u.roles?.nombre||'—';
+  const [bg,tc]=AV_COLORS[0];
+  const ventasMes=(rV.data||[]).reduce((s,v)=>s+parseFloat(v.total||0),0);
+  const numVentas=(rV.data||[]).length;
+  const comTotal=(rC.data||[]).reduce((s,c)=>s+parseFloat(c.monto||0),0);
+  const comPend=(rC.data||[]).filter(c=>!c.pagada).reduce((s,c)=>s+parseFloat(c.monto||0),0);
+  const acceso=u.ultimo_acceso?new Date(u.ultimo_acceso).toLocaleString('es-GT'):'Nunca';
+  let html='<div class="perfil-header"><div class="perfil-av" style="background:'+bg+';color:'+tc+'">'+(u.nombre||'?')[0].toUpperCase()+'</div>';
+  html+='<div><div class="perfil-nombre">'+(u.nombre||'—')+' '+(u.apellidos||'')+'</div>';
+  html+='<div class="perfil-rol"><span class="tag '+(ROL_TAG[rol]||'tag-muted')+'">'+rol+'</span></div></div></div>';
+  html+='<div class="info-grid">';
+  html+='<div class="info-item"><label>Telefono</label><span style="font-family:DM Mono,monospace">'+(u.telefono||'—')+'</span></div>';
+  html+='<div class="info-item"><label>WhatsApp</label><span style="font-family:DM Mono,monospace">'+(u.whatsapp_numero||'—')+'</span></div>';
+  html+='<div class="info-item"><label>Email</label><span style="font-size:12px">'+(u.email||'—')+'</span></div>';
+  html+='<div class="info-item"><label>DPI</label><span style="font-family:DM Mono,monospace">'+(u.dpi||'—')+'</span></div>';
+  html+='<div class="info-item"><label>NIT</label><span style="font-family:DM Mono,monospace">'+(u.nit||'—')+'</span></div>';
+  html+='<div class="info-item"><label>Ultimo acceso</label><span style="font-size:11px">'+acceso+'</span></div>';
+  html+='<div class="info-item"><label>Ventas este mes</label><span style="color:var(--success);font-weight:500">'+Q(ventasMes)+'<br><span style="font-size:11px;color:var(--muted)">'+numVentas+' transacciones</span></span></div>';
+  html+='<div class="info-item"><label>Comisiones mes</label><span style="color:var(--warning)">'+Q(comTotal)+'<br><span style="font-size:11px;color:var(--muted)">Pendiente: '+Q(comPend)+'</span></span></div>';
+  html+='</div>';
+  if((rN.data||[]).length){
+    html+='<div style="margin-top:14px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Ultimos vales</div>';
+    (rN.data||[]).forEach(v=>{
+      const VALE_TAG={pendiente:'tag-warn',aprobado:'tag-green',rechazado:'tag-red'};
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>'+Q(v.monto)+' — '+(v.motivo||'Sin motivo')+'</span><span class="tag '+(VALE_TAG[v.estado]||'')+'">'+v.estado+'</span></div>';
+    });
+  }
+  document.getElementById('perfilBody').innerHTML=html;
+  document.getElementById('perfilFooter').innerHTML=
+    '<button class="btn-secondary" onclick="cerrarModal(\'modalPerfil\')">Cerrar</button>'+
+    '<button class="btn-primary" onclick="cerrarModal(\'modalPerfil\');editarUsuario(\''+id+'\')">Editar</button>';
+}
+
+// VER CLAVES
+function verClaves(id,nombre){
+  const u=_usuarios.find(u=>u.id===id);
+  if(!u)return;
+  document.getElementById('modalClavesTitulo').textContent='Claves — '+nombre;
+  document.getElementById('keyTelegramVal').textContent=u.telegram_key||'No configurada';
+  document.getElementById('keyPinVal').textContent=u.pin_acceso||'No configurado';
+  document.getElementById('modalClaves').classList.add('open');
+}
+
+function copiarClave(elId){
+  const val=document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(val).then(()=>Nav.toast('Copiado al portapapeles.','ok')).catch(()=>Nav.toast('No se pudo copiar.','err'));
+}
+
+// ROLES
+async function loadRoles(){
+  const sb=Nav.getSb();
+  if(!_roles.length){
+    const res=await sb.from('roles').select('id,nombre,descripcion,activo').order('nombre');
+    _roles=res.data||[];
+  }
+  const ROL_DESC={
+    admin:'Acceso total al sistema — puede crear, editar y ocultar cualquier registro.',
+    encargado:'Gestiona tienda, ventas e inventario. Acceso a web restringido.',
+    vendedor:'Registra ventas y consulta stock. Solo accede por Telegram.',
+    practicante:'Solo registra sus propias ventas. Solo accede por Telegram.',
+    contador:'Acceso a modulo financiero, proveedores y precios de costo.',
+  };
+  const ROL_ACCESO={
+    admin:'Web + Bot',encargado:'Web + Bot',vendedor:'Solo Bot',practicante:'Solo Bot',contador:'Solo Web',
+  };
+  let html='<table class="tabla"><thead><tr><th>Rol</th><th>Descripcion</th><th>Acceso</th><th>Usuarios activos</th><th>Estado</th></tr></thead><tbody>';
+  _roles.forEach(r=>{
+    const count=_usuarios.filter(u=>u.roles?.nombre===r.nombre&&u.activo).length;
+    html+='<tr>';
+    html+='<td><span class="tag '+(ROL_TAG[r.nombre]||'tag-muted')+'" style="font-size:12px;padding:4px 10px;">'+r.nombre+'</span></td>';
+    html+='<td style="color:var(--muted);font-size:12px">'+(ROL_DESC[r.nombre]||r.descripcion||'—')+'</td>';
+    html+='<td style="font-size:11px"><span style="background:var(--surface2);border:1px solid var(--border);border-radius:99px;padding:2px 8px;">'+(ROL_ACCESO[r.nombre]||'—')+'</span></td>';
+    html+='<td style="font-family:DM Mono,monospace;font-size:13px;font-weight:600">'+count+'</td>';
+    html+='<td><span class="estado-dot" style="background:'+(r.activo?'var(--success)':'var(--muted)')+'"></span>'+(r.activo?'Activo':'Inactivo')+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  document.getElementById('tablaRoles').innerHTML=html;
+}
+
+// INICIO
+loadKPIs();
+loadUsuarios();
+</script>
+</body>
+</html>
