@@ -7,181 +7,66 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-:root {
-  --bg:#09090f; --surface:#111118; --surface2:#18181f;
-  --border:rgba(255,255,255,0.06); --border2:rgba(255,255,255,0.12);
-  --accent:#6c5ce7; --accent-glow:rgba(108,92,231,0.25);
-  --text:#ededf5; --muted:#6b6b82; --danger:#e84343;
-  --success:#43c59e;
-}
+:root{--bg:#09090f;--surface:#111118;--surface2:#18181f;--border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);--accent:#6c5ce7;--accent-glow:rgba(108,92,231,0.25);--text:#ededf5;--muted:#6b6b82;--danger:#e84343;--success:#43c59e;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  position:relative;
-  overflow:hidden;
-}
-/* Fondo geométrico */
-body::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background:
-    radial-gradient(ellipse 60% 40% at 20% 50%, rgba(108,92,231,0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 40% 60% at 80% 30%, rgba(67,197,158,0.05) 0%, transparent 70%);
-  pointer-events:none;
-}
-/* Grid sutil */
-body::after{
-  content:'';
-  position:absolute;
-  inset:0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size:40px 40px;
-  pointer-events:none;
-}
-.wrap{
-  width:100%;
-  max-width:400px;
-  position:relative;
-  z-index:1;
-  animation:fadeUp .5s ease both;
-}
-@keyframes fadeUp{
-  from{opacity:0;transform:translateY(24px);}
-  to{opacity:1;transform:translateY(0);}
-}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+body::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 50%,rgba(108,92,231,0.08) 0%,transparent 70%),radial-gradient(ellipse 40% 60% at 80% 30%,rgba(67,197,158,0.05) 0%,transparent 70%);pointer-events:none;}
+body::after{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.wrap{width:100%;max-width:400px;position:relative;z-index:1;animation:fadeUp .5s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
 .brand{text-align:center;margin-bottom:40px;}
-.brand-name{
-  font-family:'Syne',sans-serif;
-  font-weight:800;
-  font-size:42px;
-  letter-spacing:.12em;
-  background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  line-height:1;
-}
-.brand-tag{
-  font-family:'DM Mono',monospace;
-  font-size:10px;
-  color:var(--muted);
-  letter-spacing:.2em;
-  text-transform:uppercase;
-  margin-top:6px;
-}
-.card{
-  background:var(--surface);
-  border:1px solid var(--border);
-  border-radius:16px;
-  padding:36px;
-  box-shadow:0 0 60px rgba(0,0,0,.4), 0 0 0 1px var(--border);
-}
-.card-title{
-  font-family:'Syne',sans-serif;
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:6px;
-}
-.card-sub{
-  font-size:13px;
-  color:var(--muted);
-  margin-bottom:28px;
-  line-height:1.5;
-}
-.field{margin-bottom:20px;}
-.field label{
-  display:block;
-  font-size:11px;
-  font-weight:500;
-  letter-spacing:.1em;
-  text-transform:uppercase;
-  color:var(--muted);
-  margin-bottom:8px;
-}
-.field input{
-  width:100%;
-  background:var(--surface2);
-  border:1px solid var(--border);
-  border-radius:10px;
-  padding:13px 16px;
-  font-size:14px;
-  font-family:'DM Sans',sans-serif;
-  color:var(--text);
-  outline:none;
-  transition:border-color .2s, box-shadow .2s;
-}
-.field input:focus{
-  border-color:var(--accent);
-  box-shadow:0 0 0 3px var(--accent-glow);
-}
+.brand-name{font-family:'Syne',sans-serif;font-weight:800;font-size:42px;letter-spacing:.12em;background:linear-gradient(135deg,#fff 30%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;}
+.brand-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-top:6px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;box-shadow:0 0 60px rgba(0,0,0,.4),0 0 0 1px var(--border);}
+.card-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:6px;}
+.card-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.5;}
+.field{margin-bottom:20px;position:relative;}
+.field label{display:block;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
 .field input::placeholder{color:var(--muted);}
-.btn{
-  width:100%;
-  background:var(--accent);
-  color:#fff;
-  border:none;
-  border-radius:10px;
-  padding:14px;
-  font-size:14px;
-  font-weight:500;
-  font-family:'DM Sans',sans-serif;
-  cursor:pointer;
-  transition:opacity .2s, transform .1s, box-shadow .2s;
-  letter-spacing:.04em;
-  position:relative;
-  overflow:hidden;
-}
+.toggle-pin{position:absolute;right:14px;bottom:14px;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;line-height:1;}
+.btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:16px;font-size:15px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s,transform .1s,box-shadow .2s;letter-spacing:.04em;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;}
 .btn:hover{opacity:.9;box-shadow:0 4px 24px var(--accent-glow);}
 .btn:active{transform:scale(.98);}
 .btn:disabled{opacity:.4;cursor:not-allowed;}
 .btn-text{transition:opacity .2s;}
-.error{
-  display:none;
-  background:rgba(232,67,67,.1);
-  border:1px solid rgba(232,67,67,.25);
-  border-radius:8px;
-  padding:10px 14px;
-  font-size:12px;
-  color:var(--danger);
-  margin-top:14px;
-  text-align:center;
-}
+.error{display:none;background:rgba(232,67,67,.1);border:1px solid rgba(232,67,67,.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--danger);margin-top:14px;text-align:center;}
 .error.show{display:block;}
-.footer{
-  text-align:center;
-  margin-top:24px;
-  font-size:11px;
-  color:var(--muted);
-  line-height:1.6;
-}
+.footer{text-align:center;margin-top:24px;font-size:11px;color:var(--muted);line-height:1.6;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="brand">
     <div class="brand-name">BARATELY</div>
-    <div class="brand-tag">Sistema de Gestión · Guatemala</div>
+    <div class="brand-tag">Sistema de Gestion · Guatemala</div>
   </div>
   <div class="card">
-    <div class="card-title">Iniciar sesión</div>
+    <div class="card-title">Iniciar sesion</div>
     <div class="card-sub">Ingresa tu usuario y PIN para acceder al panel.</div>
     <div class="field">
       <label>Usuario</label>
-      <input type="text" id="inputUsuario" placeholder="Tu nombre de usuario" autocomplete="username"/>
+      <input type="text" id="inputUsuario"
+        placeholder="Tu nombre de usuario"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        inputmode="text"
+        onkeydown="if(event.key==='Enter') doLogin()"/>
     </div>
     <div class="field">
       <label>PIN de acceso</label>
-      <input type="password" id="inputPin" placeholder="••••••" autocomplete="current-password"
+      <input type="password" id="inputPin"
+        placeholder="PIN"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        inputmode="numeric"
         onkeydown="if(event.key==='Enter') doLogin()"/>
+      <button class="toggle-pin" type="button" onclick="togglePin()" id="togglePinBtn">&#128065;</button>
     </div>
     <button class="btn" id="btnLogin" onclick="doLogin()">
       <span class="btn-text">Entrar</span>
@@ -189,8 +74,8 @@ body::after{
     <div class="error" id="errorMsg">Usuario o PIN incorrecto.</div>
   </div>
   <div class="footer">
-    BARATELY · 19 calle 1-52 Zona 3, Guatemala<br>
-    Sistema de gestión de tienda de ropa
+    BARATELY &middot; 19 calle 1-52 Zona 3, Guatemala<br>
+    Sistema de gestion de tienda de ropa
   </div>
 </div>
 <script>
@@ -199,13 +84,19 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function doLogin() {
-  const usuario = document.getElementById('inputUsuario').value.trim();
-  const pin     = document.getElementById('inputPin').value.trim();
+function togglePin(){
+  const inp = document.getElementById('inputPin');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+async function doLogin(){
+  // Limpiar espacios, saltos de linea y caracteres invisibles
+  const usuario = document.getElementById('inputUsuario').value.replace(/\s+/g,'').toUpperCase();
+  const pin     = document.getElementById('inputPin').value.replace(/\s+/g,'');
   const btn     = document.getElementById('btnLogin');
   const err     = document.getElementById('errorMsg');
 
-  if (!usuario || !pin) {
+  if(!usuario || !pin){
     err.textContent = 'Completa todos los campos.';
     err.classList.add('show');
     return;
@@ -216,18 +107,28 @@ async function doLogin() {
   err.classList.remove('show');
 
   try {
+    // Buscar todos los usuarios activos y filtrar en JS para evitar problemas de query
     const { data, error } = await sb
       .from('usuarios')
-      .select('id, nombre, apellidos, pin_acceso, activo, roles(nombre)')
-      .or(`nombre.ilike.${usuario},telefono.ilike.${usuario}`)
-      .eq('activo', true)
-      .single();
+      .select('id,nombre,apellidos,pin_acceso,activo,roles(nombre)')
+      .eq('activo', true);
 
-    if (error || !data) throw new Error('not found');
-    if (data.pin_acceso !== pin) throw new Error('wrong pin');
+    if(error) throw new Error('db error');
 
-    const rol = data.roles?.nombre || 'vendedor';
-    if (!['admin','encargado','contador'].includes(rol)) {
+    // Buscar usuario ignorando mayusculas/minusculas y espacios
+    const encontrado = (data||[]).find(u => {
+      const nombreDB = (u.nombre||'').replace(/\s+/g,'').toUpperCase();
+      return nombreDB === usuario;
+    });
+
+    if(!encontrado) throw new Error('not found');
+
+    // Comparar PIN ignorando espacios
+    const pinDB = (encontrado.pin_acceso||'').replace(/\s+/g,'');
+    if(pinDB !== pin) throw new Error('wrong pin');
+
+    const rol = encontrado.roles?.nombre || 'vendedor';
+    if(!['admin','encargado','contador'].includes(rol)){
       err.textContent = 'No tienes acceso al panel web.';
       err.classList.add('show');
       btn.disabled = false;
@@ -235,14 +136,19 @@ async function doLogin() {
       return;
     }
 
+    // Actualizar ultimo acceso
+    await sb.from('usuarios').update({ultimo_acceso: new Date().toISOString()}).eq('id', encontrado.id);
+
     localStorage.setItem('barately_user', JSON.stringify({
-      id: data.id, nombre: data.nombre,
-      apellidos: data.apellidos, rol
+      id: encontrado.id,
+      nombre: encontrado.nombre,
+      apellidos: encontrado.apellidos,
+      rol
     }));
 
     window.location.href = 'dashboard.html';
 
-  } catch(e) {
+  } catch(e){
     err.textContent = 'Usuario o PIN incorrecto.';
     err.classList.add('show');
     btn.disabled = false;
