@@ -602,7 +602,7 @@ async function loadVales(){
   const sb=Nav.getSb();
   const estado=document.getElementById('valesEstado').value;
   const uid=document.getElementById('valesUsuario').value;
-  let q=sb.from('vales').select('id,monto,motivo,estado,fecha,usuario_id,aprobado_por,usuarios(nombre)').order('fecha',{ascending:false}).limit(100);
+  let q=sb.from('vales').select('id,monto,motivo,estado,fecha,usuario_id,aprobado_por').order('fecha',{ascending:false}).limit(100);
   if(estado)q=q.eq('estado',estado);
   if(uid)q=q.eq('usuario_id',uid);
   const res=await q;
@@ -616,7 +616,7 @@ async function loadVales(){
   let html='<table class="tabla"><thead><tr><th>Empleado</th><th>Monto</th><th>Motivo</th><th>Estado</th><th>Fecha</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
   data.forEach(v=>{
     const fecha=v.fecha?new Date(v.fecha).toLocaleDateString('es-GT'):'—';
-    const nombre=v.usuarios?.nombre||'—';
+    const nombre=_usuarios.find(u=>u.id===v.usuario_id)?.nombre||'—';
     html+='<tr>';
     html+='<td style="font-weight:500">'+nombre+'</td>';
     html+='<td style="font-family:DM Mono,monospace;color:var(--warning);font-weight:500">'+Q(v.monto)+'</td>';
