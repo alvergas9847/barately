@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual de Usuario — BARATELY</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090f;--surface:#111118;--surface2:#18181f;--surface3:#1e1e28;--border:rgba(255,255,255,0.07);--accent:#7c6aff;--accent2:#a855f7;--text:#ededf5;--muted:#6b6b82;--success:#43c59e;--danger:#e84343;--warning:#f0a500;--info:#4facfe;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);line-height:1.6;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(9,9,15,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;letter-spacing:.1em;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-sub{font-size:11px;color:var(--muted);margin-left:10px;}
+.nav-right{font-size:11px;color:var(--muted);}
+
+/* SIDEBAR */
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+.sidebar{position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;background:var(--surface);border-right:1px solid var(--border);padding:20px 0;}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+.sb-sec{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:12px 20px 4px;}
+.sb-item{display:flex;align-items:center;gap:10px;padding:8px 20px;font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none;}
+.sb-item:hover{color:var(--text);background:rgba(255,255,255,.03);}
+.sb-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(124,106,255,.06);}
+.sb-icon{font-size:14px;width:18px;text-align:center;}
+
+/* CONTENIDO */
+.main{padding:40px 48px;max-width:900px;}
+.section{margin-bottom:60px;scroll-margin-top:80px;}
+.section-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(124,106,255,.12);border:1px solid rgba(124,106,255,.2);border-radius:99px;padding:4px 12px;font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px;}
+.section-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:8px;line-height:1.2;}
+.section-desc{font-size:14px;color:var(--muted);margin-bottom:28px;max-width:620px;line-height:1.7;}
+h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin:28px 0 10px;}
+h4{font-size:14px;font-weight:600;margin:18px 0 8px;color:var(--text);}
+p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
+
+/* MOCKUPS */
+.mockup{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:16px 0 24px;}
+.mockup-bar{background:var(--surface2);padding:10px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.dot{width:10px;height:10px;border-radius:50%;}
+.dot-r{background:#e84343;}
+.dot-y{background:#f0a500;}
+.dot-g{background:#43c59e;}
+.mockup-url{flex:1;background:rgba(255,255,255,.04);border-radius:6px;padding:4px 10px;font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);text-align:center;}
+.mockup-body{padding:20px;}
+
+/* SCREEN DEMOS */
+.screen{background:var(--surface2);border-radius:10px;padding:16px;margin-bottom:12px;border:1px solid var(--border);}
+.screen-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px;}
+
+/* LOGIN DEMO */
+.login-demo{max-width:320px;margin:0 auto;}
+.lf{margin-bottom:12px;}
+.lf label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;}
+.lf input{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;}
+.btn-demo{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:default;}
+
+/* SIDEBAR DEMO */
+.sidebar-demo{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 0;width:180px;}
+.sd-logo{padding:10px 14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;letter-spacing:.08em;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;border-bottom:1px solid var(--border);margin-bottom:8px;}
+.sd-sec{font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;padding:8px 14px 3px;}
+.sd-item{padding:7px 14px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.sd-item.act{color:var(--accent);background:rgba(124,106,255,.08);border-left:2px solid var(--accent);}
+
+/* KPI DEMO */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.kpi-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.kpi-v{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;}
+
+/* TABLA DEMO */
+.tabla-demo{width:100%;border-collapse:collapse;font-size:12px;}
+.tabla-demo th{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:6px 10px;border-bottom:1px solid var(--border);text-align:left;}
+.tabla-demo td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.03);color:var(--text);}
+.tabla-demo tr:last-child td{border-bottom:none;}
+
+/* CARRITO DEMO */
+.carrito-demo{display:grid;grid-template-columns:1fr 260px;gap:14px;}
+.prod-search{background:rgba(255,255,255,.04);border:1px solid var(--accent);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--muted);width:100%;margin-bottom:10px;}
+.prod-item{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.caja-demo{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.caja-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--muted);}
+.caja-total{display:flex;justify-content:space-between;font-weight:700;padding:10px 0 0;border-top:1px solid var(--border);margin-top:6px;}
+.caja-total .val{font-family:'Syne',sans-serif;font-size:20px;color:var(--success);}
+.cobrar-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:default;margin-top:12px;}
+
+/* TAGS */
+.tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;}
+.tag-admin{background:rgba(124,106,255,.15);color:#b06aff;}
+.tag-encargado{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-vendedor{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-practicante{background:rgba(255,255,255,.06);color:var(--muted);}
+.tag-contador{background:rgba(255,106,106,.1);color:var(--danger);}
+.tag-ok{background:rgba(106,255,180,.1);color:var(--success);}
+.tag-warn{background:rgba(255,183,106,.12);color:var(--warning);}
+.tag-err{background:rgba(255,106,106,.12);color:var(--danger);}
+
+/* TIPS */
+.tip{display:flex;gap:12px;background:rgba(124,106,255,.06);border:1px solid rgba(124,106,255,.15);border-radius:10px;padding:14px 16px;margin:14px 0;}
+.tip-icon{font-size:18px;flex-shrink:0;margin-top:2px;}
+.tip-text{font-size:13px;color:var(--muted);line-height:1.6;}
+.tip-text strong{color:var(--text);}
+.warn-tip{background:rgba(240,165,0,.06);border-color:rgba(240,165,0,.2);}
+.ok-tip{background:rgba(67,197,158,.06);border-color:rgba(67,197,158,.2);}
+
+/* PASOS */
+.pasos{counter-reset:paso;list-style:none;margin:14px 0;}
+.pasos li{counter-increment:paso;display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;}
+.pasos li::before{content:counter(paso);min-width:28px;height:28px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;font-family:'Syne',sans-serif;}
+.pasos li div{font-size:13px;color:var(--muted);padding-top:4px;line-height:1.6;}
+.pasos li div strong{color:var(--text);}
+
+/* ROLES TABLE */
+.roles-table{width:100%;border-collapse:collapse;font-size:12px;margin:14px 0;}
+.roles-table th{background:var(--surface2);padding:10px 12px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}
+.roles-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.roles-table tr:last-child td{border-bottom:none;}
+.check{color:var(--success);}
+.cross{color:var(--muted);}
+
+/* BOTONES GUIA */
+.btns-guia{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;}
+.btn-g{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:12px;}
+.btn-g .ico{font-size:14px;}
+.btn-g .lbl{font-weight:500;}
+.btn-g .desc{font-size:11px;color:var(--muted);}
+.btn-edit{border-color:rgba(124,106,255,.3);background:rgba(124,106,255,.06);}
+.btn-del{border-color:rgba(255,106,106,.2);background:rgba(255,106,106,.05);}
+.btn-ver{border-color:rgba(106,180,255,.2);background:rgba(106,180,255,.05);}
+.btn-ok{border-color:rgba(67,197,158,.2);background:rgba(67,197,158,.05);}
+
+/* ALERTA DEMO */
+.alerta-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;gap:12px;margin-bottom:8px;}
+.al-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.al-body{flex:1;}
+.al-titulo{font-size:12px;font-weight:600;margin-bottom:3px;}
+.al-msg{font-size:11px;color:var(--muted);}
+
+/* INDEX */
+.indice{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:40px;}
+.indice-titulo{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:14px;color:var(--accent);}
+.indice-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.indice-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;text-decoration:none;color:var(--muted);font-size:12px;transition:all .15s;}
+.indice-item:hover{background:rgba(255,255,255,.04);color:var(--text);}
+.indice-item span{font-size:14px;}
+
+@media(max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{display:none;}.main{padding:24px 20px;}.kpis{grid-template-columns:1fr 1fr;}.carrito-demo{grid-template-columns:1fr;}.indice-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="nav">
+  <div style="display:flex;align-items:center;">
+    <div class="nav-logo">BARATELY</div>
+    <div class="nav-sub">Manual de Usuario</div>
+  </div>
+  <div class="nav-right">v1.0 · 2026</div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-sec">Introduccion</div>
+  <a class="sb-item active" href="#inicio" onclick="activar(this)"><span class="sb-icon">🏠</span>Que es BARATELY</a>
+  <a class="sb-item" href="#roles" onclick="activar(this)"><span class="sb-icon">👥</span>Roles y permisos</a>
+  <a class="sb-item" href="#acceso" onclick="activar(this)"><span class="sb-icon">🔑</span>Como ingresar</a>
+  <div class="sb-sec">Modulos</div>
+  <a class="sb-item" href="#dashboard" onclick="activar(this)"><span class="sb-icon">▣</span>Dashboard</a>
+  <a class="sb-item" href="#ventas" onclick="activar(this)"><span class="sb-icon">🛒</span>Nueva Venta</a>
+  <a class="sb-item" href="#resumen" onclick="activar(this)"><span class="sb-icon">📊</span>Resumen Ventas</a>
+  <a class="sb-item" href="#inventario" onclick="activar(this)"><span class="sb-icon">📦</span>Inventario</a>
+  <a class="sb-item" href="#clientes" onclick="activar(this)"><span class="sb-icon">👤</span>Clientes</a>
+  <a class="sb-item" href="#proveedores" onclick="activar(this)"><span class="sb-icon">🏭</span>Proveedores</a>
+  <a class="sb-item" href="#finanzas" onclick="activar(this)"><span class="sb-icon">💰</span>Finanzas</a>
+  <a class="sb-item" href="#usuarios" onclick="activar(this)"><span class="sb-icon">⚙️</span>Usuarios</a>
+  <a class="sb-item" href="#ia" onclick="activar(this)"><span class="sb-icon">✦</span>IA & Alertas</a>
+  <div class="sb-sec">Referencia</div>
+  <a class="sb-item" href="#botones" onclick="activar(this)"><span class="sb-icon">🖱️</span>Guia de botones</a>
+  <a class="sb-item" href="#faq" onclick="activar(this)"><span class="sb-icon">❓</span>Preguntas frecuentes</a>
+</div>
+
+<!-- CONTENIDO -->
+<div class="main">
+
+<!-- INDICE -->
+<div class="indice">
+  <div class="indice-titulo">📋 Contenido del manual</div>
+  <div class="indice-grid">
+    <a class="indice-item" href="#inicio"><span>🏠</span>Que es BARATELY</a>
+    <a class="indice-item" href="#roles"><span>👥</span>Roles y permisos</a>
+    <a class="indice-item" href="#acceso"><span>🔑</span>Como ingresar</a>
+    <a class="indice-item" href="#dashboard"><span>▣</span>Dashboard</a>
+    <a class="indice-item" href="#ventas"><span>🛒</span>Nueva Venta</a>
+    <a class="indice-item" href="#resumen"><span>📊</span>Resumen Ventas</a>
+    <a class="indice-item" href="#inventario"><span>📦</span>Inventario</a>
+    <a class="indice-item" href="#clientes"><span>👤</span>Clientes</a>
+    <a class="indice-item" href="#proveedores"><span>🏭</span>Proveedores</a>
+    <a class="indice-item" href="#finanzas"><span>💰</span>Finanzas</a>
+    <a class="indice-item" href="#usuarios"><span>⚙️</span>Usuarios</a>
+    <a class="indice-item" href="#ia"><span>✦</span>IA & Alertas</a>
+  </div>
+</div>
+
+<!-- ═══ INICIO ═══ -->
+<div class="section" id="inicio">
+  <div class="section-badge">📖 Introduccion</div>
+  <div class="section-title">Que es BARATELY</div>
+  <div class="section-desc">Sistema de gestion completo para la tienda de ropa BARATELY. Permite registrar ventas, controlar inventario, gestionar clientes y ver reportes en tiempo real desde cualquier dispositivo.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">alvergas9847.github.io/barately</div></div>
+    <div class="mockup-body">
+      <div style="display:grid;grid-template-columns:180px 1fr;gap:14px;min-height:200px;">
+        <div class="sidebar-demo">
+          <div class="sd-logo">BARATELY</div>
+          <div class="sd-sec">Principal</div>
+          <div class="sd-item act">▣ Dashboard</div>
+          <div class="sd-sec">Operaciones</div>
+          <div class="sd-item">🛒 Nueva venta</div>
+          <div class="sd-item">📊 Resumen</div>
+          <div class="sd-item">👤 Clientes</div>
+          <div class="sd-item">📦 Inventario</div>
+        </div>
+        <div>
+          <div class="kpis">
+            <div class="kpi"><div class="kpi-l">Ventas hoy</div><div class="kpi-v" style="color:var(--success)">Q850</div></div>
+            <div class="kpi"><div class="kpi-l">Del mes</div><div class="kpi-v" style="color:var(--accent)">Q12,400</div></div>
+            <div class="kpi"><div class="kpi-l">Clientes</div><div class="kpi-v">48</div></div>
+            <div class="kpi"><div class="kpi-l">Alertas</div><div class="kpi-v" style="color:var(--warning)">3</div></div>
+          </div>
+          <div style="background:rgba(124,106,255,.06);border:1px solid rgba(124,106,255,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--muted);">Panel listo. Hoy es lunes. <strong style="color:var(--success)">WILDER</strong> lidera con Q450 en 3 ventas.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip ok-tip">
+    <div class="tip-icon">✅</div>
+    <div class="tip-text"><strong>Acceso desde cualquier dispositivo:</strong> Funciona en celulares Android, iPhone, tablets y computadoras. Solo necesitas internet y el link de la tienda.</div>
+  </div>
+</div>
+
+<!-- ═══ ROLES ═══ -->
+<div class="section" id="roles">
+  <div class="section-badge">👥 Roles</div>
+  <div class="section-title">Roles y permisos</div>
+  <div class="section-desc">Cada usuario tiene un rol que define que puede ver y hacer dentro del sistema. El administrador tiene acceso total.</div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+    <span class="tag tag-admin" style="font-size:13px;padding:6px 14px;">Admin</span>
+    <span class="tag tag-encargado" style="font-size:13px;padding:6px 14px;">Encargado</span>
+    <span class="tag tag-contador" style="font-size:13px;padding:6px 14px;">Contador</span>
+    <span class="tag tag-vendedor" style="font-size:13px;padding:6px 14px;">Vendedor</span>
+    <span class="tag tag-practicante" style="font-size:13px;padding:6px 14px;">Practicante</span>
+  </div>
+
+  <table class="roles-table">
+    <tr><th>Funcion</th><th><span class="tag tag-admin">Admin</span></th><th><span class="tag tag-encargado">Encargado</span></th><th><span class="tag tag-contador">Contador</span></th><th><span class="tag tag-vendedor">Vendedor</span></th><th><span class="tag tag-practicante">Practicante</span></th></tr>
+    <tr><td>Panel web</td><td class="check">✔</td><td class="check">✔</td><td class="check">✔</td><td class="cross">Bot</td><td class="cross">Bot</td></tr>
+    <tr><td>Registrar ventas</td><td class="check">✔</td><td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="check">✔</td></tr>
+    <tr><td>Ver inventario</td><td class="check">✔</td><td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td></tr>
+    <tr><td>Ver precios de costo</td><td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td></tr>
+    <tr><td>Crear productos</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+    <tr><td>Ver finanzas</td><td class="check">✔</td><td class="cross">—</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td></tr>
+    <tr><td>Aprobar vales</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+    <tr><td>Crear usuarios</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+    <tr><td>Ver alertas IA</td><td class="check">✔</td><td class="check">✔</td><td class="cross">—</td><td class="cross">—</td><td class="cross">—</td></tr>
+  </table>
+
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>Importante:</strong> Vendedor y Practicante solo acceden por el Bot de Telegram. No pueden ingresar al panel web.</div>
+  </div>
+</div>
+
+<!-- ═══ ACCESO ═══ -->
+<div class="section" id="acceso">
+  <div class="section-badge">🔑 Acceso</div>
+  <div class="section-title">Como ingresar al sistema</div>
+  <div class="section-desc">Para entrar al panel web necesitas tu nombre de usuario y PIN de acceso. El administrador te los proporciona.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">alvergas9847.github.io/barately/index.html</div></div>
+    <div class="mockup-body">
+      <div class="login-demo">
+        <div style="text-align:center;margin-bottom:20px;"><div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">BARATELY</div><div style="font-size:10px;color:var(--muted);letter-spacing:.15em;">SISTEMA DE GESTION</div></div>
+        <div class="lf"><label>Usuario</label><input value="WILDER" readonly/></div>
+        <div class="lf"><label>PIN de acceso</label><input type="password" value="1234" readonly/></div>
+        <button class="btn-demo">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <ol class="pasos">
+    <li><div><strong>Abre el navegador</strong> en tu celular o computadora — usa Safari en iPhone o Chrome en Android.</div></li>
+    <li><div><strong>Escribe la direccion:</strong> <code style="background:var(--surface2);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;">alvergas9847.github.io/barately</code></div></li>
+    <li><div><strong>Escribe tu nombre de usuario</strong> tal como te lo dio el administrador (ej: WILDER).</div></li>
+    <li><div><strong>Escribe tu PIN</strong> — es el numero o palabra que te asignaron.</div></li>
+    <li><div><strong>Presiona Entrar</strong> y llegas directo al Dashboard.</div></li>
+  </ol>
+
+  <div class="tip">
+    <div class="tip-icon">💡</div>
+    <div class="tip-text"><strong>Instalar como app:</strong> En Android abre Chrome, ve al menu (3 puntos) y toca "Agregar a pantalla de inicio". En iPhone abre Safari, toca el boton compartir y "Agregar a pantalla de inicio". Asi abre como una app.</div>
+  </div>
+
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>PIN incorrecto:</strong> Verifica que no haya espacios al inicio o final. El usuario debe escribirse en MAYUSCULAS tal como esta registrado.</div>
+  </div>
+</div>
+
+<!-- ═══ DASHBOARD ═══ -->
+<div class="section" id="dashboard">
+  <div class="section-badge">▣ Dashboard</div>
+  <div class="section-title">Dashboard — Pantalla principal</div>
+  <div class="section-desc">Al ingresar llegas al Dashboard. Muestra un resumen en tiempo real de como va el negocio: ventas del dia, del mes, alertas y mas.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">dashboard.html</div></div>
+    <div class="mockup-body">
+      <div class="kpis">
+        <div class="kpi"><div class="kpi-l">Ventas hoy</div><div class="kpi-v" style="color:var(--success)">Q1,250</div></div>
+        <div class="kpi"><div class="kpi-l">Ventas mes</div><div class="kpi-v" style="color:var(--accent)">Q18,400</div></div>
+        <div class="kpi"><div class="kpi-l">Transacciones</div><div class="kpi-v">24</div></div>
+        <div class="kpi"><div class="kpi-l">Alertas</div><div class="kpi-v" style="color:var(--warning)">5</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="screen"><div class="screen-title">Vendedores hoy</div>
+          <div style="font-size:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px;"><span>🥇 WILDER</span><span style="color:var(--success)">Q650</span></div>
+            <div style="display:flex;justify-content:space-between;"><span>🥈 DORIS</span><span style="color:var(--success)">Q600</span></div>
+          </div>
+        </div>
+        <div class="screen"><div class="screen-title">Metodos de pago</div>
+          <div style="font-size:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="color:var(--muted)">Efectivo</span><span>65%</span></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--muted)">Transferencia</span><span>35%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Que muestra el Dashboard</h3>
+  <div class="btns-guia">
+    <div class="btn-g"><div class="ico">💚</div><div><div class="lbl">Ventas hoy</div><div class="desc">Total vendido en el dia actual</div></div></div>
+    <div class="btn-g"><div class="ico">💜</div><div><div class="lbl">Ventas del mes</div><div class="desc">Total acumulado del mes en curso</div></div></div>
+    <div class="btn-g"><div class="ico">🏆</div><div><div class="lbl">Ranking vendedores</div><div class="desc">Quien ha vendido mas hoy</div></div></div>
+    <div class="btn-g"><div class="ico">🔔</div><div><div class="lbl">Alertas activas</div><div class="desc">Stock critico, clientes inactivos, etc.</div></div></div>
+  </div>
+</div>
+
+<!-- ═══ NUEVA VENTA ═══ -->
+<div class="section" id="ventas">
+  <div class="section-badge">🛒 Ventas</div>
+  <div class="section-title">Nueva Venta — Punto de venta</div>
+  <div class="section-desc">Aqui se registran todas las ventas. Busca productos, agrega al carrito, aplica descuentos y cobra con uno o varios metodos de pago.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">ventas.html</div></div>
+    <div class="mockup-body">
+      <div class="carrito-demo">
+        <div>
+          <input class="prod-search" value="🔍 Buscar producto o escanear codigo..." readonly/>
+          <div class="prod-item"><div><div style="font-weight:500;font-size:12px;">Pantalon de lona negro</div><div style="font-size:11px;color:var(--muted);">T:32 · Stock: 8</div></div><div style="color:var(--success);font-family:'DM Mono',monospace;font-size:12px;">Q85.00</div></div>
+          <div class="prod-item" style="background:rgba(124,106,255,.06);border-color:rgba(124,106,255,.3);"><div><div style="font-weight:500;font-size:12px;">Playera azul marino</div><div style="font-size:11px;color:var(--muted);">T:M · Stock: 12</div></div><div style="color:var(--success);font-family:'DM Mono',monospace;font-size:12px;">Q45.00</div></div>
+        </div>
+        <div class="caja-demo">
+          <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:10px;">💳 Caja</div>
+          <div class="caja-row"><span>Subtotal</span><span style="font-family:'DM Mono',monospace;">Q130.00</span></div>
+          <div class="caja-row"><span>Descuento</span><span style="font-family:'DM Mono',monospace;color:var(--warning);">-Q0.00</span></div>
+          <div class="caja-total"><span>TOTAL</span><span class="val">Q130.00</span></div>
+          <button class="cobrar-btn">COBRAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Como registrar una venta</h3>
+  <ol class="pasos">
+    <li><div><strong>Busca el producto</strong> — escribe el nombre o escanea el codigo de barras en el campo de busqueda. Tambien puedes usar la tecla F2 para enfocar rapidamente.</div></li>
+    <li><div><strong>Selecciona la talla y color</strong> — aparecen los botones de variantes disponibles. Los que dicen 0 uds estan agotados y no se pueden seleccionar.</div></li>
+    <li><div><strong>El producto se agrega al carrito</strong> — puedes cambiar la cantidad con los botones + y -, o aplicar un descuento por producto escribiendo el porcentaje.</div></li>
+    <li><div><strong>Busca al cliente</strong> (opcional) — escribe el nombre o telefono. Si tiene compras anteriores las veras automaticamente.</div></li>
+    <li><div><strong>Aplica descuento global</strong> si aplica — puede ser en Quetzales (Q) o porcentaje (%).</div></li>
+    <li><div><strong>Selecciona el metodo de pago</strong> — efectivo, tarjeta, transferencia o visalink. Puedes usar varios metodos en una sola venta.</div></li>
+    <li><div><strong>Presiona COBRAR</strong> — aparece el recibo con el cambio si aplica. Puedes imprimirlo.</div></li>
+  </ol>
+
+  <div class="tip">
+    <div class="tip-icon">💡</div>
+    <div class="tip-text"><strong>Atajo F2:</strong> Presiona F2 en el teclado para ir directo al campo de busqueda de productos sin usar el mouse.</div>
+  </div>
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>Stock insuficiente:</strong> Si un producto aparece en gris con 0 uds significa que esta agotado. Debes registrar una entrada en Inventario antes de poder venderlo.</div>
+  </div>
+</div>
+
+<!-- ═══ RESUMEN VENTAS ═══ -->
+<div class="section" id="resumen">
+  <div class="section-badge">📊 Historial</div>
+  <div class="section-title">Resumen de Ventas</div>
+  <div class="section-desc">Ver el historial de todas las ventas, filtrar por fecha, cliente o vendedor, ver el detalle de cada venta y anularla si es necesario.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">resumen_venta.html</div></div>
+    <div class="mockup-body">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--muted);">📅 01/03/2026</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--muted);">📅 23/03/2026</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--muted);">Estado: Todas</div>
+      </div>
+      <table class="tabla-demo">
+        <tr><th>Fecha</th><th>Cliente</th><th>Vendedor</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
+        <tr><td style="color:var(--muted);font-size:11px;">23/03/2026</td><td>Maria Lopez</td><td style="color:var(--muted);">WILDER</td><td style="color:var(--success);font-family:'DM Mono',monospace;">Q245.00</td><td><span class="tag tag-ok">completada</span></td><td><button style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:var(--muted);cursor:default;">Ver</button></td></tr>
+        <tr><td style="color:var(--muted);font-size:11px;">22/03/2026</td><td>General</td><td style="color:var(--muted);">DORIS</td><td style="color:var(--success);font-family:'DM Mono',monospace;">Q85.00</td><td><span class="tag tag-ok">completada</span></td><td><button style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 7px;font-size:10px;color:var(--muted);cursor:default;">Ver</button></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>Pestanas disponibles</h3>
+  <div class="btns-guia">
+    <div class="btn-g btn-ver"><div class="ico">📋</div><div><div class="lbl">Historial</div><div class="desc">Todas las ventas con filtros por fecha, estado y turno</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">📅</div><div><div class="lbl">Ventas de hoy</div><div class="desc">Solo las ventas del dia actual en tiempo real</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">💵</div><div><div class="lbl">Comisiones</div><div class="desc">Comisiones generadas por vendedor en el periodo</div></div></div>
+  </div>
+
+  <h3>Como anular una venta</h3>
+  <ol class="pasos">
+    <li><div>Encuentra la venta en el Historial usando los filtros de fecha o nombre de cliente.</div></li>
+    <li><div>Presiona el boton <strong>Ver</strong> para abrir el detalle completo de la venta.</div></li>
+    <li><div>Si la venta esta completada aparece el boton <strong>Anular venta</strong> en rojo.</div></li>
+    <li><div>Escribe el <strong>motivo de la anulacion</strong> y confirma. La venta queda marcada como anulada pero no se borra.</div></li>
+  </ol>
+
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>Las ventas no se borran.</strong> Anular cambia el estado a "Anulada" pero el registro queda guardado para auditoria. Solo el Admin y Encargado pueden anular.</div>
+  </div>
+</div>
+
+<!-- ═══ INVENTARIO ═══ -->
+<div class="section" id="inventario">
+  <div class="section-badge">📦 Inventario</div>
+  <div class="section-title">Inventario</div>
+  <div class="section-desc">Controla todos los productos, tallas, colores y el stock disponible. Registra entradas y salidas de mercaderia.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">inventario.html</div></div>
+    <div class="mockup-body">
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
+        <div style="background:var(--accent);color:#fff;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:600;">Productos</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;color:var(--muted);">Stock</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;color:var(--muted);">Categorias</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;color:var(--muted);">Colores</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;color:var(--muted);">Tallas</div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;color:var(--muted);">Movimientos</div>
+      </div>
+      <table class="tabla-demo">
+        <tr><th>Producto</th><th>Categoria</th><th>Proveedor</th><th>Precio</th><th>Estado</th></tr>
+        <tr><td><span style="margin-right:6px;">👖</span>Pantalon lona</td><td style="color:var(--muted);">Adultos</td><td style="color:var(--info);font-size:11px;">eulalio</td><td style="font-family:'DM Mono',monospace;color:var(--success);">Q85.00</td><td><span class="tag tag-ok">stock</span></td></tr>
+        <tr><td><span style="margin-right:6px;">👕</span>Playera basica</td><td style="color:var(--muted);">Adultos</td><td style="color:var(--muted);font-size:11px;">—</td><td style="font-family:'DM Mono',monospace;color:var(--success);">Q45.00</td><td><span class="tag tag-ok">stock</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3>Pestanas del Inventario</h3>
+  <div class="btns-guia">
+    <div class="btn-g btn-ver"><div class="ico">📋</div><div><div class="lbl">Productos</div><div class="desc">Catalogo completo con precio, categoria y proveedor</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">📊</div><div><div class="lbl">Stock</div><div class="desc">Unidades disponibles por talla y color con barra visual</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🏷️</div><div><div class="lbl">Categorias</div><div class="desc">Organiza productos por tipo de mercado</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🎨</div><div><div class="lbl">Colores</div><div class="desc">Paleta de colores con selector HEX</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">📏</div><div><div class="lbl">Tallas</div><div class="desc">Desde bebe 0-3m hasta 7XL</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🔄</div><div><div class="lbl">Movimientos</div><div class="desc">Historial de entradas, salidas y ajustes</div></div></div>
+  </div>
+
+  <h3>Como agregar un producto nuevo</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Productos</strong> y presiona <strong>+ Nuevo producto</strong>.</div></li>
+    <li><div>Llena el nombre, precio de venta, categoria y tipo de ropa. El precio de costo es opcional.</div></li>
+    <li><div>Si viene de un proveedor, seleccionalo en el campo <strong>Proveedor</strong>. Puedes dejarlo en blanco.</div></li>
+    <li><div>En la seccion de <strong>Variantes</strong> agrega cada combinacion de talla y color con su cantidad en stock.</div></li>
+    <li><div>Presiona <strong>Guardar producto</strong>.</div></li>
+  </ol>
+
+  <h3>Como registrar una entrada de mercaderia</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Movimientos</strong> y presiona <strong>+ Registrar movimiento</strong>.</div></li>
+    <li><div>Escribe el nombre del producto en el buscador y seleccionalo.</div></li>
+    <li><div>Selecciona la <strong>variante</strong> (talla y color).</div></li>
+    <li><div>Elige tipo <strong>Entrada</strong>, escribe la cantidad y el motivo.</div></li>
+    <li><div>Presiona <strong>Registrar</strong> — el stock se actualiza automaticamente.</div></li>
+  </ol>
+</div>
+
+<!-- ═══ CLIENTES ═══ -->
+<div class="section" id="clientes">
+  <div class="section-badge">👤 Clientes</div>
+  <div class="section-title">Clientes</div>
+  <div class="section-desc">Registra y gestiona la informacion de tus clientes. Ve su historial de compras y agrega notas internas.</div>
+
+  <h3>Como agregar un cliente</h3>
+  <ol class="pasos">
+    <li><div>Ve al modulo <strong>Clientes</strong> y presiona <strong>+ Nuevo cliente</strong>.</div></li>
+    <li><div>Llena el nombre, telefono y WhatsApp. El NIT y DPI son opcionales.</div></li>
+    <li><div>Presiona <strong>Guardar</strong>.</div></li>
+  </ol>
+
+  <h3>Ver historial de compras de un cliente</h3>
+  <ol class="pasos">
+    <li><div>Busca el cliente por nombre o telefono.</div></li>
+    <li><div>Presiona el boton <strong>Ver</strong> en su fila.</div></li>
+    <li><div>Se abre una ventana con todas sus compras, fechas, montos y notas internas.</div></li>
+  </ol>
+
+  <div class="tip">
+    <div class="tip-icon">💡</div>
+    <div class="tip-text"><strong>Notas internas:</strong> Puedes dejar notas sobre el cliente (preferencias, tallas favoritas, credito, etc.) que solo el equipo puede ver.</div>
+  </div>
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>No se borran clientes.</strong> Si un cliente ya no es activo usa el boton <strong>Desactivar</strong> — queda oculto pero sus datos y compras se conservan.</div>
+  </div>
+</div>
+
+<!-- ═══ PROVEEDORES ═══ -->
+<div class="section" id="proveedores">
+  <div class="section-badge">🏭 Proveedores</div>
+  <div class="section-title">Proveedores</div>
+  <div class="section-desc">Gestiona tus proveedores, registra compras y controla el credito disponible con cada uno.</div>
+
+  <h3>Pestanas de Proveedores</h3>
+  <div class="btns-guia">
+    <div class="btn-g btn-ver"><div class="ico">📋</div><div><div class="lbl">Proveedores</div><div class="desc">Lista con contacto, telefono, NIT y dias de credito</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🧾</div><div><div class="lbl">Historial de compras</div><div class="desc">Todas las compras registradas con estado y tipo de pago</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">💳</div><div><div class="lbl">Creditos</div><div class="desc">Limite de credito, usado y disponible por proveedor</div></div></div>
+  </div>
+
+  <h3>Como registrar una compra a proveedor</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Historial de compras</strong> y presiona <strong>+ Registrar compra</strong>.</div></li>
+    <li><div>Selecciona el proveedor, tipo (mayorista, lote, etc.), monto total y tipo de pago (contado o credito).</div></li>
+    <li><div>Agrega la fecha estimada de entrega y notas si aplica.</div></li>
+    <li><div>Presiona <strong>Registrar compra</strong>.</div></li>
+  </ol>
+</div>
+
+<!-- ═══ FINANZAS ═══ -->
+<div class="section" id="finanzas">
+  <div class="section-badge">💰 Finanzas</div>
+  <div class="section-title">Finanzas</div>
+  <div class="section-desc">Control de egresos, nomina, vales y un resumen financiero del negocio. Solo accesible para Admin y Contador.</div>
+
+  <h3>Pestanas de Finanzas</h3>
+  <div class="btns-guia">
+    <div class="btn-g btn-ver"><div class="ico">📊</div><div><div class="lbl">Resumen</div><div class="desc">Ingresos vs egresos del mes con barras por categoria</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">💸</div><div><div class="lbl">Egresos</div><div class="desc">Gastos de luz, agua, alquiler, transporte, etc.</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">👔</div><div><div class="lbl">Nomina</div><div class="desc">Pagos de sueldo, comisiones y bonos por empleado</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">📝</div><div><div class="lbl">Vales</div><div class="desc">Adelantos de sueldo solicitados y pendientes de aprobar</div></div></div>
+  </div>
+
+  <h3>Como aprobar un vale</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Vales</strong> — los vales pendientes tienen un badge naranja.</div></li>
+    <li><div>Filtra por <strong>Pendientes</strong> para ver solo los que necesitan decision.</div></li>
+    <li><div>Presiona el boton <strong>Resolver</strong> en el vale.</div></li>
+    <li><div>Elige <strong>Aprobar</strong> (verde) o <strong>Rechazar</strong> (rojo) y confirma.</div></li>
+  </ol>
+
+  <h3>Como registrar un egreso</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Egresos</strong> y presiona <strong>+ Nuevo egreso</strong>.</div></li>
+    <li><div>Escribe el concepto (ej: "Pago de luz marzo"), el monto y selecciona la categoria.</div></li>
+    <li><div>Agrega la fecha y descripcion adicional si aplica.</div></li>
+    <li><div>Presiona <strong>Guardar</strong>.</div></li>
+  </ol>
+</div>
+
+<!-- ═══ USUARIOS ═══ -->
+<div class="section" id="usuarios">
+  <div class="section-badge">⚙️ Usuarios</div>
+  <div class="section-title">Usuarios</div>
+  <div class="section-desc">Gestiona el equipo de trabajo. Crea, edita y desactiva usuarios. Asigna roles y claves de acceso. Solo el Admin puede acceder.</div>
+
+  <h3>Como crear un usuario nuevo</h3>
+  <ol class="pasos">
+    <li><div>Ve al modulo <strong>Usuarios</strong> y presiona <strong>+ Nuevo usuario</strong>.</div></li>
+    <li><div>Llena el nombre, apellidos, telefono y datos personales.</div></li>
+    <li><div>Selecciona el <strong>Rol</strong> — Admin, Encargado, Vendedor, Practicante o Contador.</div></li>
+    <li><div>Asigna un <strong>PIN de acceso</strong> para el panel web (ej: MARIA2026).</div></li>
+    <li><div>Asigna una <strong>Clave Telegram</strong> para el bot (ej: MARIA47).</div></li>
+    <li><div>Presiona <strong>Guardar usuario</strong> y comparte las claves con el empleado.</div></li>
+  </ol>
+
+  <h3>Como ver las claves de un usuario</h3>
+  <ol class="pasos">
+    <li><div>Encuentra al usuario en la tabla.</div></li>
+    <li><div>Presiona el boton <strong>Claves</strong> (amarillo).</div></li>
+    <li><div>Se muestra la clave Telegram y el PIN con boton para copiar.</div></li>
+  </ol>
+
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>No se borran usuarios.</strong> Usa el boton <strong>Desactivar</strong> para que el empleado ya no pueda ingresar. Sus ventas y datos quedan guardados.</div>
+  </div>
+</div>
+
+<!-- ═══ IA ═══ -->
+<div class="section" id="ia">
+  <div class="section-badge">✦ Inteligencia Artificial</div>
+  <div class="section-title">IA & Alertas</div>
+  <div class="section-desc">El modulo mas avanzado del sistema. Genera alertas automaticas, muestra rankings y permite hacer preguntas directas sobre el negocio a Claude IA.</div>
+
+  <div class="mockup">
+    <div class="mockup-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><div class="mockup-url">ia.html</div></div>
+    <div class="mockup-body">
+      <div class="alerta-card"><div class="al-icon" style="background:rgba(255,106,106,.12);">🔴</div><div class="al-body"><div class="al-titulo">Stock critico: Pantalon lona T:32 <span class="tag tag-err" style="margin-left:6px;">alta</span></div><div class="al-msg">Quedan 2 unidades. Minimo: 5. Reordenar urgente.</div></div></div>
+      <div class="alerta-card"><div class="al-icon" style="background:rgba(255,183,106,.12);">👤</div><div class="al-body"><div class="al-titulo">Cliente inactivo: Maria Lopez <span class="tag tag-warn" style="margin-left:6px;">media</span></div><div class="al-msg">Sin comprar en 52 dias. Total historico: Q1,240.</div></div></div>
+    </div>
+  </div>
+
+  <h3>Pestanas de IA & Alertas</h3>
+  <div class="btns-guia">
+    <div class="btn-g btn-ver"><div class="ico">✦</div><div><div class="lbl">Resumen IA</div><div class="desc">Bienvenida inteligente con datos del dia y temporadas proximas</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🔔</div><div><div class="lbl">Alertas</div><div class="desc">Stock critico, productos sin movimiento, clientes inactivos</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🏆</div><div><div class="lbl">Ranking</div><div class="desc">Top vendedores y productos mas vendidos del mes</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">🤖</div><div><div class="lbl">Analisis IA</div><div class="desc">Preguntale a Claude sobre tu negocio y obtén recomendaciones</div></div></div>
+  </div>
+
+  <h3>Como usar el Analisis con IA</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Analisis</strong>.</div></li>
+    <li><div>Usa los botones rapidos (Top productos, Temporadas, Vendedores, Reorden) o escribe tu propia pregunta.</div></li>
+    <li><div>Presiona <strong>Analizar con IA</strong> — Claude recibe datos reales de tu tienda y responde en segundos.</div></li>
+  </ol>
+
+  <h3>Como generar alertas automaticamente</h3>
+  <ol class="pasos">
+    <li><div>Ve a la pestana <strong>Alertas</strong>.</div></li>
+    <li><div>Presiona el boton <strong>⚡ Generar alertas</strong>.</div></li>
+    <li><div>El sistema revisa automaticamente stock critico y productos sin movimiento en 30 dias.</div></li>
+    <li><div>Las alertas nuevas aparecen en la lista. Marca como leidas las que ya revisaste.</div></li>
+  </ol>
+</div>
+
+<!-- ═══ BOTONES ═══ -->
+<div class="section" id="botones">
+  <div class="section-badge">🖱️ Referencia</div>
+  <div class="section-title">Guia de botones</div>
+  <div class="section-desc">Referencia rapida de todos los botones que encontraras en el sistema.</div>
+
+  <div class="btns-guia">
+    <div class="btn-g btn-edit"><div class="ico">✏️</div><div><div class="lbl">Editar</div><div class="desc">Abre el formulario para modificar el registro</div></div></div>
+    <div class="btn-g btn-del"><div class="ico">❌</div><div><div class="lbl">Desactivar / Eliminar</div><div class="desc">Oculta el registro. Nunca borra datos</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">👁️</div><div><div class="lbl">Ver</div><div class="desc">Abre el detalle completo del registro</div></div></div>
+    <div class="btn-g btn-ok"><div class="ico">✅</div><div><div class="lbl">Aprobar</div><div class="desc">Confirma o aprueba una solicitud</div></div></div>
+    <div class="btn-g"><div class="ico">🔑</div><div><div class="lbl">Claves</div><div class="desc">Muestra PIN y clave Telegram del usuario</div></div></div>
+    <div class="btn-g"><div class="ico">🔄</div><div><div class="lbl">Activar</div><div class="desc">Reactiva un registro desactivado</div></div></div>
+    <div class="btn-g btn-edit"><div class="ico">💬</div><div><div class="lbl">Subcats</div><div class="desc">Ver subcategorias de una categoria</div></div></div>
+    <div class="btn-g btn-del"><div class="ico">🚫</div><div><div class="lbl">Anular</div><div class="desc">Cambia estado de venta a anulada</div></div></div>
+  </div>
+
+  <h3>Colores de estado</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:10px;margin:14px 0;">
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;"><span style="color:var(--success);font-size:16px;">●</span><span style="font-size:12px;">Verde = Activo / OK / Completado</span></div>
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;"><span style="color:var(--warning);font-size:16px;">●</span><span style="font-size:12px;">Naranja = Pendiente / Advertencia</span></div>
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;"><span style="color:var(--danger);font-size:16px;">●</span><span style="font-size:12px;">Rojo = Error / Critico / Anulado</span></div>
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;"><span style="color:var(--muted);font-size:16px;">●</span><span style="font-size:12px;">Gris = Inactivo / Sin datos</span></div>
+  </div>
+</div>
+
+<!-- ═══ FAQ ═══ -->
+<div class="section" id="faq">
+  <div class="section-badge">❓ FAQ</div>
+  <div class="section-title">Preguntas frecuentes</div>
+
+  <h3>¿Como recupero mi PIN si lo olvide?</h3>
+  <p>Contacta al administrador. El puede ver y cambiar tu PIN desde el modulo de Usuarios → boton Claves o Editar.</p>
+
+  <h3>¿Por que no puedo ver el modulo de Finanzas?</h3>
+  <p>Solo Admin y Contador tienen acceso a Finanzas. Si necesitas acceso pide al administrador que cambie tu rol.</p>
+
+  <h3>¿Como agrego un nuevo metodo de pago?</h3>
+  <p>Los metodos de pago (efectivo, tarjeta, transferencia, visalink) se configuran directamente en la base de datos. Contacta al administrador del sistema.</p>
+
+  <h3>¿Por que el producto aparece agotado si tengo mercaderia?</h3>
+  <p>El stock se descuenta automaticamente con cada venta. Para reponerlo ve a Inventario → Movimientos → Registrar movimiento → tipo Entrada.</p>
+
+  <h3>¿Puedo usar el sistema sin internet?</h3>
+  <p>No, el sistema requiere conexion a internet para conectarse a la base de datos Supabase. Sin internet no se pueden registrar ventas ni ver datos.</p>
+
+  <h3>¿Como instalo la app en mi celular?</h3>
+  <p>En Android: abre Chrome, entra al link, menu 3 puntos → "Agregar a pantalla de inicio". En iPhone: abre Safari, boton compartir → "Agregar a pantalla de inicio". Funciona como app sin necesitar Play Store.</p>
+
+  <h3>¿Las ventas anuladas afectan el inventario?</h3>
+  <p>Actualmente anular una venta cambia su estado pero no repone automaticamente el stock. Para reponer el stock ve a Inventario → Movimientos → tipo Devolucion.</p>
+
+  <div class="tip ok-tip" style="margin-top:28px;">
+    <div class="tip-icon">📞</div>
+    <div class="tip-text"><strong>Soporte tecnico:</strong> Para problemas tecnicos con el sistema contacta al administrador. Para problemas de acceso (PIN incorrecto, usuario bloqueado) el administrador puede resolverlo desde el modulo Usuarios.</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+function activar(el){
+  document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
+  el.classList.add('active');
+}
+// Activar sidebar segun scroll
+const secciones=document.querySelectorAll('.section');
+const items=document.querySelectorAll('.sb-item');
+window.addEventListener('scroll',()=>{
+  let actual='';
+  secciones.forEach(s=>{if(s.getBoundingClientRect().top<=100)actual=s.id;});
+  items.forEach(i=>{
+    i.classList.toggle('active',i.getAttribute('href')==='#'+actual);
+  });
+});
+</script>
+</body>
+</html>
