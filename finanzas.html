@@ -616,8 +616,8 @@ async function loadVales(){
   let html='<table class="tabla"><thead><tr><th>Empleado</th><th>Monto</th><th>Motivo</th><th>Estado</th><th>Fecha</th><th>Aprobado por</th>'+(esAdmin?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
   data.forEach(v=>{
     const fecha=v.fecha?new Date(v.fecha).toLocaleDateString('es-GT'):'—';
-    const solicitante=v.usuarios?.[0]?.nombre||'—';
-    const aprobador=v.usuarios?.[1]?.nombre||'—';
+    const solicitante=v.usuarios?.nombre||'—';
+    const aprobador='—';
     html+='<tr><td style="font-weight:500">'+solicitante+'</td>';
     html+='<td style="font-family:DM Mono,monospace;color:var(--warning);font-weight:500">'+Q(v.monto)+'</td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(v.motivo||'—')+'</td>';
