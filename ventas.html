@@ -189,6 +189,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
             <span class="search-badge">F2</span>
             <div class="dropdown" id="dropdownProd"></div>
           </div>
+          <div id="prodImgPanel" style="display:none;margin-top:10px;"></div>
           <div id="variantesPanel" style="display:none;margin-top:12px;">
             <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Selecciona talla y color:</div>
             <div class="variantes-grid" id="variantesGrid"></div>
@@ -301,7 +302,7 @@ Nav.init('ventas');
 // ── ESTADO ────────────────────────────────────────────────────
 let _carrito=[], _pagoCount=0;
 let _clienteId=null, _clienteNombre='General';
-let _metodosPago=[], _productoActual=null;
+let _metodosPago=[], _productoActual=null, _prodImages={};
 const Q=v=>"Q"+parseFloat(v||0).toLocaleString('es-GT',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 // ── INIT ──────────────────────────────────────────────────────
@@ -335,13 +336,19 @@ async function buscarProducto(){
   _searchTimer=setTimeout(async()=>{
     const sb=Nav.getSb();
     const res=await sb.from('productos')
-      .select('id,nombre,codigo_barra,precio_venta,tipo_ropa')
+      .select('id,nombre,codigo_barra,precio_venta,tipo_ropa,imagen_url')
       .or('nombre.ilike.%'+txt+'%,codigo_barra.ilike.%'+txt+'%')
       .eq('activo',true).limit(8);
     const data=res.data||[];
     const dd=document.getElementById('dropdownProd');
     if(!data.length){dd.innerHTML='<div style="padding:12px 14px;font-size:12px;color:var(--muted)">Sin resultados</div>';dd.classList.add('open');return;}
-    dd.innerHTML=data.map(p=>'<div class="drop-item" onclick="seleccionarProducto(\''+p.id+'\',\''+p.nombre.replace(/'/g,"\\'")+'\','+p.precio_venta+')"><div class="drop-item-nombre">'+p.nombre+'</div><div class="drop-item-meta"><span class="drop-item-precio">'+Q(p.precio_venta)+'</span>'+(p.codigo_barra?'<span class="drop-item-stock">'+p.codigo_barra+'</span>':'')+'</div></div>').join('');
+    data.forEach(p=>{if(p.imagen_url)_prodImages[p.id]=p.imagen_url;});
+    dd.innerHTML=data.map(p=>{
+      const thumb=p.imagen_url
+        ?'<img src="'+p.imagen_url+'" style="width:40px;height:40px;border-radius:6px;object-fit:cover;flex-shrink:0;" onerror="this.style.display=\'none\'"/>'
+        :'<div style="width:40px;height:40px;border-radius:6px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📦</div>';
+      return '<div class="drop-item" onclick="seleccionarProducto(\''+p.id+'\',\''+p.nombre.replace(/'/g,"\\'")+'\','+p.precio_venta+')"><div style="display:flex;align-items:center;gap:10px;">'+thumb+'<div><div class="drop-item-nombre">'+p.nombre+'</div><div class="drop-item-meta"><span class="drop-item-precio">'+Q(p.precio_venta)+'</span>'+(p.codigo_barra?'<span class="drop-item-stock">'+p.codigo_barra+'</span>':'')+'</div></div></div></div>';
+    }).join('');
     dd.classList.add('open');
   },200);
 }
@@ -350,6 +357,10 @@ async function seleccionarProducto(id,nombre,precio){
   _productoActual={id,nombre,precio};
   document.getElementById('searchProd').value=nombre;
   document.getElementById('dropdownProd').classList.remove('open');
+  const imgUrl=_prodImages[id]||'';
+  const imgPanel=document.getElementById('prodImgPanel');
+  if(imgUrl){imgPanel.innerHTML='<img src="'+imgUrl+'" style="width:100%;max-height:150px;object-fit:contain;border-radius:8px;border:1px solid var(--border);"/>';imgPanel.style.display='';}
+  else{imgPanel.innerHTML='';imgPanel.style.display='none';}
   // Cargar variantes
   const sb=Nav.getSb();
   const res=await sb.from('variantes').select('id,stock,tallas(nombre),colores(nombre,hex)').eq('producto_id',id).eq('activo',true).order('stock',{ascending:false});
@@ -593,6 +604,7 @@ function limpiarVenta(){
   _carrito=[];_clienteId=null;_clienteNombre='General';
   renderCarrito();
   document.getElementById('searchProd').value='';
+  document.getElementById('prodImgPanel').innerHTML='';document.getElementById('prodImgPanel').style.display='none';
   document.getElementById('variantesPanel').style.display='none';
   document.getElementById('descGlobal').value='';
   document.getElementById('descGlobalVal').textContent='';

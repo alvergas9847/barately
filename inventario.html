@@ -93,6 +93,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn-rm:hover{color:var(--danger);}
 .var-sel{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--text);outline:none;width:100%;}
 .var-num{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--text);outline:none;width:100%;}
+.prod-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border);background:var(--surface2);}
+/* ── Imagen producto ── */
+.img-box{border-radius:10px;overflow:hidden;background:var(--surface2);border:1px solid var(--border);position:relative;}
+.img-box img{width:100%;max-height:160px;object-fit:contain;display:block;}
+.img-box-btns{display:flex;gap:8px;padding:8px;}
+.img-label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(124,106,255,.12);color:var(--accent);border:1px solid rgba(124,106,255,.3);border-radius:7px;padding:8px 10px;font-size:12px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+.img-label:active{opacity:.75;}
+.img-label-danger{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(232,67,67,.1);color:var(--danger);border:1px solid rgba(232,67,67,.25);border-radius:7px;padding:8px 10px;font-size:12px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+.img-label-danger:active{opacity:.75;}
+.img-sin-foto{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:20px 0;}
+.img-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
 .loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
 .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -231,7 +242,32 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <div class="field"><label>Activo</label>
           <select id="prActivo"><option value="true">Si</option><option value="false">No</option></select>
         </div>
-        <div class="section-sep">Variantes (talla + color + stock)</div>
+        <div class="section-sep">Variantes — talla, color, stock e imagen</div>
+        <div class="field form-full">
+          <label>Foto del producto</label>
+          <div class="img-box" id="imgBox">
+            <!-- sin foto -->
+            <div class="img-sin-foto" id="imgSinFoto">
+              <span style="font-size:36px;opacity:.4">📷</span>
+              <span style="font-size:12px;color:var(--muted)">Sin foto</span>
+            </div>
+            <!-- preview -->
+            <img id="imgPreview" src="" alt="" style="display:none;width:100%;max-height:160px;object-fit:contain;"/>
+            <div class="img-box-btns">
+              <!-- label actúa como botón nativo → funciona en iOS y Android -->
+              <label class="img-label" for="prImagen">
+                📷 <span id="imgBtnTxt">Capturar / Subir foto</span>
+              </label>
+              <input class="img-input" type="file" id="prImagen"
+                accept="image/jpeg,image/png,image/webp,image/*"
+                onchange="previewImagen(this)"/>
+              <button type="button" class="img-label-danger" id="imgBtnEliminar"
+                style="display:none" onclick="eliminarImagen()">
+                🗑 Quitar
+              </button>
+            </div>
+          </div>
+        </div>
         <div class="form-full" style="display:grid;grid-template-columns:1fr 1fr 70px 70px 28px;gap:8px;margin-bottom:6px;">
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Talla</div>
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;">Color</div>
@@ -375,12 +411,28 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
           <div id="movStockActual" style="font-size:11px;color:var(--muted);margin-top:3px;"></div>
         </div>
         <div class="field"><label>Tipo *</label>
-          <select id="movTipo">
+          <select id="movTipo" onchange="onMovTipoChange()">
             <option value="entrada">Entrada</option><option value="salida">Salida</option>
             <option value="ajuste">Ajuste</option><option value="devolucion">Devolucion</option>
           </select>
         </div>
         <div class="field"><label>Cantidad *</label><input type="number" id="movCantidad" placeholder="0" min="1"/></div>
+        <div class="field form-full" id="loteWrap">
+          <label>Lote de ingreso</label>
+          <div style="display:flex;gap:8px;margin-bottom:6px;">
+            <select id="movLoteSelect" class="var-sel" style="flex:1"><option value="">Sin lote</option></select>
+            <button type="button" onclick="toggleNuevoLoteForm()" style="background:rgba(124,106,255,.1);color:var(--accent);border:1px solid rgba(124,106,255,.3);border-radius:7px;padding:6px 10px;font-size:11px;cursor:pointer;white-space:nowrap;">+ Nuevo</button>
+          </div>
+          <div id="nuevoLoteForm" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div class="field"><label>N° Lote *</label><input type="text" id="loteNumero" placeholder="LOT-001"/></div>
+              <div class="field"><label>Fecha ingreso</label><input type="date" id="loteFecha"/></div>
+              <div class="field"><label>Proveedor</label><select id="loteProveedor" class="var-sel"><option value="">Sin proveedor</option></select></div>
+              <div class="field"><label>Notas</label><input type="text" id="loteNotas" placeholder="Opcional"/></div>
+            </div>
+            <button type="button" onclick="crearLote()" class="btn-primary" style="width:100%;font-size:12px;padding:7px;">Crear y seleccionar lote</button>
+          </div>
+        </div>
         <div class="field form-full"><label>Observaciones</label><textarea id="movObs" placeholder="Motivo del movimiento..."></textarea></div>
       </div>
     </div>
@@ -435,7 +487,7 @@ async function loadProductos(){
   const sb=Nav.getSb();
   if(puedeEditar)document.getElementById('btnNuevoProd').innerHTML='<button class="btn-primary" onclick="abrirModalProd()">+ Nuevo producto</button>';
   const [rP,rC,rProv]=await Promise.all([
-    sb.from('productos').select('id,nombre,codigo,codigo_barra,tipo_ropa,precio_venta,precio_costo,estado,activo,categorias(nombre),proveedores(nombre)').order('nombre'),
+    sb.from('productos').select('id,nombre,codigo,codigo_barra,tipo_ropa,precio_venta,precio_costo,estado,activo,imagen_url,categorias(nombre),proveedores(nombre)').order('nombre'),
     sb.from('categorias').select('id,nombre').eq('activo',true).order('nombre'),
     sb.from('proveedores').select('id,nombre').eq('activo',true).order('nombre'),
   ]);
@@ -470,9 +522,9 @@ const ICONOS={pantalones:'👖',playeras:'👕',camisetas:'👕',blusas:'👗',c
 function renderProductos(data){
   if(!data.length){document.getElementById('tablaProductos').innerHTML='<div class="loading">Sin productos.</div>';return;}
   const verCostos=Nav.puede('verCostos');
-  let html='<table class="tabla"><thead><tr><th>Producto</th><th>Categoria</th><th>Proveedor</th><th>Precio venta</th>'+(verCostos?'<th>Costo</th>':'')+'<th>Estado</th><th>Activo</th>'+(puedeEditar?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
+  let html='<table class="tabla"><thead><tr><th style="width:48px"></th><th>Producto</th><th>Categoria</th><th>Proveedor</th><th>Precio venta</th>'+(verCostos?'<th>Costo</th>':'')+'<th>Estado</th><th>Activo</th>'+(puedeEditar?'<th>Acciones</th>':'')+'</tr></thead><tbody>';
   data.forEach(p=>{
-    html+='<tr><td><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:18px">'+(ICONOS[p.tipo_ropa]||'📦')+'</span><div><div style="font-weight:500">'+p.nombre+'</div><div style="font-size:10px;color:var(--muted);font-family:DM Mono,monospace">'+(p.codigo||p.codigo_barra||'')+'</div></div></div></td>';
+    html+='<tr><td style="text-align:center">'+(p.imagen_url?'<img class="prod-thumb" src="'+p.imagen_url+'" onerror="this.style.opacity=.15"/>':'<span style="font-size:22px">'+(ICONOS[p.tipo_ropa]||'📦')+'</span>')+'</td><td><div><div style="font-weight:500">'+p.nombre+'</div><div style="font-size:10px;color:var(--muted);font-family:DM Mono,monospace">'+(p.codigo||p.codigo_barra||'')+'</div></div></td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(p.categorias?.nombre||'—')+'</td>';
     html+='<td style="font-size:11px;color:var(--info)">'+(p.proveedores?.nombre||'—')+'</td>';
     html+='<td style="color:var(--success);font-weight:500;font-family:DM Mono,monospace">'+Q(p.precio_venta)+'</td>';
@@ -491,6 +543,7 @@ async function abrirModalProd(){
   document.getElementById('prPrecioVenta').value='';document.getElementById('prPrecioCosto').value='';
   document.getElementById('prEstado').value='stock';document.getElementById('prActivo').value='true';
   document.getElementById('variantesContainer').innerHTML='';
+  _eliminarImgFlag=false;document.getElementById('prImagen').value='';_imgMostrar(null);
   poblarSelectsModal();agregarVariante();
   document.getElementById('modalProd').classList.add('open');
 }
@@ -505,6 +558,7 @@ async function editarProducto(id){
   document.getElementById('prPrecioVenta').value=p.precio_venta||'';document.getElementById('prPrecioCosto').value=p.precio_costo||'';
   document.getElementById('prTipo').value=p.tipo_ropa||'otro';document.getElementById('prEstado').value=p.estado||'stock';
   document.getElementById('prActivo').value=p.activo?'true':'false';
+  _eliminarImgFlag=false;document.getElementById('prImagen').value='';_imgMostrar(p.imagen_url||null);
   poblarSelectsModal(p.categoria_id,p.subcategoria_id,p.proveedor_id);
   document.getElementById('variantesContainer').innerHTML='';
   (p.variantes||[]).forEach(v=>agregarVariante(v));
@@ -569,6 +623,7 @@ async function guardarProducto(){
       if(!tId)continue;
       await sb.from('variantes').upsert({producto_id:prodId,talla_id:tId,color_id:cId||null,stock:st,stock_minimo:mn,activo:true},{onConflict:'producto_id,talla_id,color_id'});
     }
+    await uploadImagen(prodId);
     Nav.toast(_editProdId?'Producto actualizado.':'Producto creado.','ok');
     cerrarModal('modalProd');_tabLoaded['productos']=false;_tabLoaded['stock']=false;loadProductos();loadKPIs();
   }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
@@ -806,7 +861,7 @@ async function toggleTalla(id,activo,nombre){
 async function loadMovimientos(){
   const sb=Nav.getSb();
   if(puedeEditar)document.getElementById('btnNuevoMov').innerHTML='<button class="btn-primary" onclick="abrirModalMov()">+ Registrar movimiento</button>';
-  const res=await sb.from('movimientos_inventario').select('id,tipo,cantidad,observaciones,fecha,variantes(stock,tallas(nombre),colores(nombre),productos(nombre)),usuarios(nombre)').order('fecha',{ascending:false}).limit(60);
+  const res=await sb.from('movimientos_inventario').select('id,tipo,cantidad,observaciones,fecha,variantes(stock,tallas(nombre),colores(nombre),productos(nombre)),usuarios(nombre),lotes(numero_lote,fecha_ingreso)').order('fecha',{ascending:false}).limit(60);
   _movimientos=res.data||[];renderMovimientos(_movimientos);
 }
 function filtrarMovimientos(){
@@ -816,7 +871,7 @@ function filtrarMovimientos(){
 const MOV_COLOR={entrada:'var(--success)',salida:'var(--danger)',ajuste:'var(--warning)',devolucion:'var(--info)'};
 function renderMovimientos(data){
   if(!data.length){document.getElementById('tablaMovimientos').innerHTML='<div class="loading">Sin movimientos.</div>';return;}
-  let html='<table class="tabla"><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Talla</th><th>Cantidad</th><th>Usuario</th><th>Observaciones</th></tr></thead><tbody>';
+  let html='<table class="tabla"><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Talla</th><th>Cantidad</th><th>Lote</th><th>Usuario</th><th>Observaciones</th></tr></thead><tbody>';
   data.forEach(m=>{
     const color=MOV_COLOR[m.tipo]||'var(--muted)';
     const fecha=m.fecha?new Date(m.fecha).toLocaleString('es-GT'):'—';
@@ -825,6 +880,7 @@ function renderMovimientos(data){
     html+='<td style="font-weight:500">'+(m.variantes?.productos?.nombre||'—')+'</td>';
     html+='<td style="font-family:DM Mono,monospace;font-size:12px">'+(m.variantes?.tallas?.nombre||'—')+'</td>';
     html+='<td style="color:'+color+';font-weight:600">'+(m.tipo==='salida'?'-':'+')+' '+m.cantidad+'</td>';
+    html+='<td style="font-family:DM Mono,monospace;font-size:10px;color:var(--muted)">'+(m.lotes?.numero_lote||'—')+'</td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(m.usuarios?.nombre||'—')+'</td>';
     html+='<td style="color:var(--muted);font-size:11px">'+(m.observaciones||'—')+'</td></tr>';
   });
@@ -836,7 +892,14 @@ function abrirModalMov(){
   document.getElementById('movStockActual').textContent='';
   document.getElementById('movResultados').style.display='none';
   document.getElementById('movCantidad').value='';document.getElementById('movObs').value='';
-  document.getElementById('movTipo').value='entrada';document.getElementById('modalMov').classList.add('open');
+  document.getElementById('movTipo').value='entrada';
+  document.getElementById('loteWrap').style.display='';
+  document.getElementById('nuevoLoteForm').style.display='none';
+  document.getElementById('loteNumero').value='';document.getElementById('loteNotas').value='';
+  document.getElementById('loteFecha').value=new Date().toISOString().split('T')[0];
+  document.getElementById('loteProveedor').innerHTML='<option value="">Sin proveedor</option>'+_proveedores.map(p=>'<option value="'+p.id+'">'+p.nombre+'</option>').join('');
+  cargarLotes();
+  document.getElementById('modalMov').classList.add('open');
 }
 async function buscarProdMov(){
   const txt=document.getElementById('movBuscar').value.trim();
@@ -867,12 +930,108 @@ async function guardarMovimiento(){
   if(!varId){Nav.toast('Selecciona un producto.','err');return;}
   if(!cant||cant<=0){Nav.toast('La cantidad debe ser mayor a 0.','err');return;}
   try{const sb=Nav.getSb();
-    const {error}=await sb.from('movimientos_inventario').insert({variante_id:varId,usuario_id:Nav.getUser().id,tipo,cantidad:cant,observaciones:obs||null});
+    const loteId=document.getElementById('movLoteSelect')?.value||null;
+    const {error}=await sb.from('movimientos_inventario').insert({variante_id:varId,usuario_id:Nav.getUser().id,tipo,cantidad:cant,observaciones:obs||null,lote_id:loteId||null});
     if(error)throw error;
     Nav.toast('Movimiento registrado.','ok');cerrarModal('modalMov');
     _tabLoaded['movimientos']=false;_tabLoaded['stock']=false;loadKPIs();loadMovimientos();
   }catch(e){Nav.toast('Error: '+(e.message||''),'err');}
 }
+// ── IMAGEN PRODUCTO ───────────────────────────────────────────
+let _eliminarImgFlag=false; // true cuando el usuario quiere borrar la imagen actual
+
+function _imgMostrar(url){
+  const prev=document.getElementById('imgPreview');
+  const sinFoto=document.getElementById('imgSinFoto');
+  const btnElim=document.getElementById('imgBtnEliminar');
+  const btnTxt=document.getElementById('imgBtnTxt');
+  if(url){
+    prev.src=url;prev.style.display='block';
+    sinFoto.style.display='none';
+    btnElim.style.display='';
+    btnTxt.textContent='Cambiar foto';
+  }else{
+    prev.src='';prev.style.display='none';
+    sinFoto.style.display='';
+    btnElim.style.display='none';
+    btnTxt.textContent='Capturar / Subir foto';
+  }
+}
+
+function previewImagen(input){
+  if(!input.files||!input.files[0])return;
+  _eliminarImgFlag=false;
+  const reader=new FileReader();
+  reader.onload=e=>_imgMostrar(e.target.result);
+  reader.readAsDataURL(input.files[0]);
+}
+
+function eliminarImagen(){
+  _eliminarImgFlag=true;
+  document.getElementById('prImagen').value='';
+  _imgMostrar(null);
+}
+
+async function uploadImagen(prodId){
+  const input=document.getElementById('prImagen');
+  const sb=Nav.getSb();
+  // Borrar imagen
+  if(_eliminarImgFlag){
+    await sb.from('productos').update({imagen_url:null}).eq('id',prodId);
+    return;
+  }
+  if(!input||!input.files||!input.files[0])return;
+  const file=input.files[0];
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase();
+  const path=prodId+'.'+ext;
+  const {error}=await sb.storage.from('productos').upload(path,file,{upsert:true,contentType:file.type});
+  if(error){Nav.toast('Error subiendo imagen: '+error.message,'err');return;}
+  const {data}=sb.storage.from('productos').getPublicUrl(path);
+  await sb.from('productos').update({imagen_url:data.publicUrl}).eq('id',prodId);
+}
+
+// ── LOTES ─────────────────────────────────────────────────────
+let _lotes=[];
+
+function onMovTipoChange(){
+  const tipo=document.getElementById('movTipo').value;
+  document.getElementById('loteWrap').style.display=tipo==='entrada'?'':'none';
+}
+
+function toggleNuevoLoteForm(){
+  const f=document.getElementById('nuevoLoteForm');
+  f.style.display=f.style.display==='block'?'none':'block';
+}
+
+async function cargarLotes(){
+  const sb=Nav.getSb();
+  const res=await sb.from('lotes').select('id,numero_lote,fecha_ingreso,proveedores(nombre)').eq('estado','activo').order('creado_en',{ascending:false}).limit(30);
+  _lotes=res.data||[];
+  const sel=document.getElementById('movLoteSelect');
+  if(!sel)return;
+  sel.innerHTML='<option value="">Sin lote</option>'+_lotes.map(l=>'<option value="'+l.id+'">'+l.numero_lote+(l.fecha_ingreso?' — '+l.fecha_ingreso:'')+(l.proveedores?' ('+l.proveedores.nombre+')':'')+'</option>').join('');
+}
+
+async function crearLote(){
+  const numero=document.getElementById('loteNumero').value.trim();
+  if(!numero){Nav.toast('El número de lote es obligatorio.','err');return;}
+  const sb=Nav.getSb();
+  const datos={
+    numero_lote:numero,
+    fecha_ingreso:document.getElementById('loteFecha').value||new Date().toISOString().split('T')[0],
+    proveedor_id:document.getElementById('loteProveedor').value||null,
+    notas:document.getElementById('loteNotas').value.trim()||null,
+    usuario_id:Nav.getUser().id
+  };
+  const {data,error}=await sb.from('lotes').insert(datos).select('id,numero_lote').single();
+  if(error){Nav.toast('Error: '+error.message,'err');return;}
+  await cargarLotes();
+  document.getElementById('movLoteSelect').value=data.id;
+  document.getElementById('nuevoLoteForm').style.display='none';
+  document.getElementById('loteNumero').value='';document.getElementById('loteNotas').value='';
+  Nav.toast('Lote '+data.numero_lote+' creado.','ok');
+}
+
 loadKPIs();loadProductos();
 </script>
 </body>
