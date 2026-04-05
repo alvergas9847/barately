@@ -43,10 +43,10 @@ async def buscar_stock(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     if not productos:
         await update.message.reply_text(
-            "❌ Producto no encontrado.",
-            reply_markup=teclado_menu(usuario["rol"])
+            "❌ Producto no encontrado. Intenta con otro nombre:",
+            reply_markup=teclado_cancelar()
         )
-        return 1
+        return STOCK_BUSCAR
 
     msg = ""
     for p in productos:

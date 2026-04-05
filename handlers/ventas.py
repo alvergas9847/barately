@@ -192,7 +192,7 @@ async def venta_seleccionar_talla(update: Update, ctx: ContextTypes.DEFAULT_TYPE
     for v in variantes:
         talla = v.get("tallas", {}).get("nombre", "?") if v.get("tallas") else "?"
         color = v.get("colores", {}).get("nombre", "") if v.get("colores") else ""
-        if talla in texto:
+        if f"T:{talla}" in texto:
             if not color or color in texto:
                 variante = v
                 break
@@ -294,6 +294,10 @@ async def venta_decision(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if texto == "✅ Terminar venta":
         return await pedir_pago(update, ctx)
 
+    await update.message.reply_text(
+        "Selecciona *Agregar otro producto* o *Terminar venta*.",
+        parse_mode="Markdown"
+    )
     return VENTA_METODO_PAGO
 
 
@@ -329,15 +333,15 @@ async def pedir_pago(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 async def venta_metodo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     """Selección de método de pago."""
-    texto    = update.message.text.strip().lower()
+    texto    = update.message.text.strip()
     usuario  = usuario_actual(ctx)
     metodos  = ctx.user_data.get("metodos_pago", [])
 
-    if texto == "❌ cancelar":
+    if texto == "❌ Cancelar":
         await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
         return 1
 
-    metodo = next((m for m in metodos if m["nombre"].lower() == texto), None)
+    metodo = next((m for m in metodos if m["nombre"].lower() == texto.lower()), None)
     if not metodo:
         await update.message.reply_text("Selecciona un método de pago de la lista.")
         return VENTA_MONTO_PAGO
