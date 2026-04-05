@@ -42,6 +42,12 @@ const Nav = (() => {
         { id: 'ia',        label: 'IA & Alertas', icon: '✦', href: 'ia.html',        roles: ['admin','encargado'], badge: () => Nav._alertas },
       ]
     },
+    {
+      seccion: 'Ayuda',
+      items: [
+        { id: 'manual', label: 'Manual de uso', icon: '?', href: 'manual.html', roles: ['admin','encargado','contador'] },
+      ]
+    },
   ];
   // ── Permisos por página ───────────────────────────────────
   // Qué roles pueden acceder a cada página
@@ -55,6 +61,7 @@ const PERMISOS = {
     'finanzas':      ['admin','contador'],
     'usuarios':      ['admin'],
     'ia':            ['admin','encargado'],
+    'manual':        ['admin','encargado','contador'],
   };
 
   // ── Capacidades por rol ───────────────────────────────────
