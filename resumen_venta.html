@@ -85,7 +85,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .loading{text-align:center;padding:40px;color:var(--muted);font-size:13px;}
 .spinner{width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;margin-right:8px;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
-@media(max-width:900px){.nav-main{margin-left:0;}.nav-hamburger{display:block!important;}.content{padding:16px;}.topbar{padding:12px 16px;}.info-grid{grid-template-columns:1fr;}}
+
+@media(max-width:900px){.nav-main{margin-left:0;}.nav-hamburger{display:block!important;}.content{padding:16px;}.topbar{padding:10px 14px;}.info-grid{grid-template-columns:1fr;}}
+@media(max-width:600px){
+  .fecha-chip{display:none;}
+  .page-title{font-size:15px;}
+  .btn-logout{font-size:11px;padding:4px 10px;}
+  .content{padding:8px;}
+  .card-hdr{padding:10px 12px;flex-wrap:wrap;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px;}
+  /* Tablas scrolleables */
+  .tabla{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap;}
+  .tabla th,.tabla td{padding:7px 9px;}
+  .btn-accion{padding:3px 7px;font-size:10px;margin-right:2px;}
+  /* Grids inline del JS */
+  #resumenHoyGrid,#resumenGrid,#resumenCards,#rankingGrid,
+  #totalesDia{grid-template-columns:1fr!important;}
+  /* Modales bottom-sheet */
+  .modal-bg{padding:0;align-items:flex-end;}
+  .modal,.modal-lg{border-radius:16px 16px 0 0;max-width:100%;max-height:96vh;}
+  .modal-footer{flex-direction:column-reverse;gap:8px;}
+  .modal-footer .btn-primary,
+  .modal-footer .btn-secondary{width:100%;padding:12px;font-size:14px;text-align:center;}
+  .search-bar{padding:8px 10px;gap:6px;}
+  .search-input{font-size:14px;}
+}
 </style>
 </head>
 <body>
@@ -423,7 +447,7 @@ async function loadHoy(){
     html+='</tbody></table></div>';
     const totalHoy=resumen.reduce((s,r)=>s+parseFloat(r.total_vendido||0),0);
     const numHoy=resumen.reduce((s,r)=>s+parseInt(r.num_ventas||0),0);
-    html+='<div class="card"><div class="card-hdr"><div class="card-title">Totales del dia</div></div><div style="padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">';
+    html+='<div class="card"><div class="card-hdr"><div class="card-title">Totales del dia</div></div><div id="totalesDia" style="padding:18px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">';
     html+='<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Transacciones</div><div style="font-family:Syne,sans-serif;font-size:28px;font-weight:700;">'+numHoy+'</div></div>';
     html+='<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Total vendido</div><div style="font-family:Syne,sans-serif;font-size:22px;font-weight:700;color:var(--success)">'+Q(totalHoy)+'</div></div>';
     html+='<div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Ticket promedio</div><div style="font-family:Syne,sans-serif;font-size:22px;font-weight:700;">'+Q(numHoy>0?totalHoy/numHoy:0)+'</div></div>';
