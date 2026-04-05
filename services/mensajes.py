@@ -26,24 +26,30 @@ def fecha_hoy() -> str:
     return datetime.now().strftime("%d/%m/%Y")
 
 
+# ── Etiquetas de botones del menú (deben coincidir con los filtros en main.py) ──
+BTN_VENTA   = "🛒 Registrar venta"
+BTN_VENTAS  = "📊 Mis ventas"
+BTN_STOCK   = "🔍 Stock"
+BTN_VALE    = "💵 Vale"
+BTN_RESUMEN = "📈 Resumen del día"
+BTN_ALERTAS = "🔔 Alertas"
+BTN_SALIR   = "🚪 Cerrar sesión"
+
+
 # ── Menú ──────────────────────────────────────────────────────
 def texto_menu(rol: str) -> str:
-    msg  = "📋 *Menu BARATELY*\n\n"
-    msg += "1 — 🛒 Registrar venta\n"
-    msg += "2 — 📊 Mis ventas de hoy\n"
-    msg += "3 — 🔍 Consultar stock\n"
-    msg += "4 — 💵 Solicitar vale\n"
-    if rol in ("admin", "encargado"):
-        msg += "5 — 📈 Resumen del dia\n"
-        msg += "6 — 🔔 Alertas IA\n"
-    msg += "0 — 🚪 Cerrar sesion"
-    return msg
+    turno  = turno_actual()
+    saludo = {"manana": "🌅 Buenos días", "tarde": "🌤 Buenas tardes", "noche": "🌙 Buenas noches"}.get(turno, "👋 Hola")
+    return f"{saludo} — *Menú BARATELY*\nToca una opción:"
 
 def teclado_menu(rol: str) -> ReplyKeyboardMarkup:
-    opciones = [["1", "2"], ["3", "4"]]
+    opciones = [
+        [BTN_VENTA,   BTN_VENTAS],
+        [BTN_STOCK,   BTN_VALE],
+    ]
     if rol in ("admin", "encargado"):
-        opciones.append(["5", "6"])
-    opciones.append(["0"])
+        opciones.append([BTN_RESUMEN, BTN_ALERTAS])
+    opciones.append([BTN_SALIR])
     return ReplyKeyboardMarkup(opciones, resize_keyboard=True)
 
 def teclado_cancelar() -> ReplyKeyboardMarkup:
@@ -61,7 +67,7 @@ def sin_teclado() -> ReplyKeyboardRemove:
 MSG_BIENVENIDA = (
     "👕 *BARATELY — Sistema de Ventas*\n"
     "📍 19 calle 1-52 Zona 3, Guatemala\n\n"
-    "Para acceder escribe tu *clave personal*:"
+    "Escribe tu *clave personal* para acceder:"
 )
 
 MSG_SESION_EXPIRADA = "⏱ Tu sesion expiro. Escribe /start para volver a entrar."
@@ -111,12 +117,15 @@ def formato_mis_ventas(ventas: list) -> str:
     if not ventas:
         return "📭 No tienes ventas registradas hoy."
     total = sum(float(v["total"]) for v in ventas)
-    msg   = f"📊 *Tus ventas de hoy — {fecha_hoy()}*\n\n"
+    msg   = f"📊 *Mis ventas — {fecha_hoy()}*\n\n"
+    turno_ico = {"manana": "🌅", "tarde": "🌤", "noche": "🌙"}
     for i, v in enumerate(ventas, 1):
         hora  = v["fecha"][11:16] if v.get("fecha") else "--:--"
-        turno = v.get("turno", "")
-        msg  += f"  {i}. {hora} ({turno}) — *{q(v['total'])}*\n"
-    msg += f"\n💰 *Total: {q(total)}*  |  {len(ventas)} ventas"
+        t     = v.get("turno", "")
+        ico   = turno_ico.get(t, "🕐")
+        msg  += f"  {i}. {ico} {hora} — *{q(v['total'])}*\n"
+    msg += f"\n💰 *Total del día: {q(total)}*\n"
+    msg += f"📦 {len(ventas)} venta{'s' if len(ventas) != 1 else ''} registrada{'s' if len(ventas) != 1 else ''}"
     return msg
 
 

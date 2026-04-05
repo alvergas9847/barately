@@ -29,6 +29,10 @@ from handlers.inventario import (
     vale_monto, vale_motivo,
     STOCK_BUSCAR, VALE_MONTO, VALE_MOTIVO
 )
+from services.mensajes import (
+    BTN_VENTA, BTN_VENTAS, BTN_STOCK, BTN_VALE,
+    BTN_RESUMEN, BTN_ALERTAS, BTN_SALIR
+)
 
 
 def construir_conversacion() -> ConversationHandler:
@@ -41,13 +45,14 @@ def construir_conversacion() -> ConversationHandler:
                 MessageHandler(TEXT, recibir_key)
             ],
             MENU_PRINCIPAL: [
-                MessageHandler(filters.Regex("^1$"), iniciar_venta),
-                MessageHandler(filters.Regex("^2$"), mis_ventas),
-                MessageHandler(filters.Regex("^3$"), iniciar_stock),
-                MessageHandler(filters.Regex("^4$"), iniciar_vale),
-                MessageHandler(filters.Regex("^5$"), resumen_dia),
-                MessageHandler(filters.Regex("^6$"), ver_alertas),
-                MessageHandler(filters.Regex("^0$"), cerrar_sesion),
+                # Botones descriptivos (nuevo) + números (compatibilidad)
+                MessageHandler(filters.Regex(f"^({BTN_VENTA}|1)$"),   iniciar_venta),
+                MessageHandler(filters.Regex(f"^({BTN_VENTAS}|2)$"),  mis_ventas),
+                MessageHandler(filters.Regex(f"^({BTN_STOCK}|3)$"),   iniciar_stock),
+                MessageHandler(filters.Regex(f"^({BTN_VALE}|4)$"),    iniciar_vale),
+                MessageHandler(filters.Regex(f"^({BTN_RESUMEN}|5)$"), resumen_dia),
+                MessageHandler(filters.Regex(f"^({BTN_ALERTAS}|6)$"), ver_alertas),
+                MessageHandler(filters.Regex(f"^({BTN_SALIR}|0)$"),   cerrar_sesion),
                 MessageHandler(TEXT, mostrar_menu),
             ],
             VENTA_CLIENTE: [

@@ -9,7 +9,8 @@ from services.supabase_svc import (
     vincular_chat_id, crear_sesion, desvincular_chat_id
 )
 from services.mensajes import (
-    teclado_menu, texto_menu, sin_teclado, MSG_BIENVENIDA
+    teclado_menu, texto_menu, sin_teclado, MSG_BIENVENIDA,
+    fecha_hoy, hora_actual, turno_actual
 )
 from config.settings import logger
 
@@ -25,8 +26,8 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if usuario:
         ctx.user_data["usuario"] = usuario
         await update.message.reply_text(
-            f"Bienvenido de nuevo, *{usuario['nombre']}*\n"
-            f"Rol: {usuario['rol'].capitalize()}\n\n"
+            f"👋 *{usuario['nombre']}*, bienvenido de nuevo.\n"
+            f"📅 {fecha_hoy()}  🕐 {hora_actual()}\n\n"
             + texto_menu(usuario["rol"]),
             parse_mode="Markdown",
             reply_markup=teclado_menu(usuario["rol"])
@@ -67,10 +68,13 @@ async def recibir_key(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     logger.info(f"Login exitoso: {usuario['nombre']} (chat {chat_id})")
 
+    turno  = turno_actual()
+    iconos = {"manana": "🌅", "tarde": "🌤", "noche": "🌙"}
     await update.message.reply_text(
-        f"Acceso concedido\n\n"
-        f"Hola *{usuario['nombre']}*\n"
-        f"Rol: {usuario['rol'].capitalize()}\n\n"
+        f"✅ *¡Acceso concedido!*\n\n"
+        f"{iconos.get(turno,'👋')} Hola, *{usuario['nombre']}*\n"
+        f"Rol: {usuario['rol'].capitalize()}\n"
+        f"📅 {fecha_hoy()}  🕐 {hora_actual()}\n\n"
         + texto_menu(usuario["rol"]),
         parse_mode="Markdown",
         reply_markup=teclado_menu(usuario["rol"])
@@ -83,8 +87,7 @@ async def mostrar_menu(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     if not usuario:
         return await cmd_start(update, ctx)
     await update.message.reply_text(
-        "Escribe el numero de la opcion:\n\n"
-        + texto_menu(usuario["rol"]),
+        texto_menu(usuario["rol"]),
         parse_mode="Markdown",
         reply_markup=teclado_menu(usuario["rol"])
     )
