@@ -4,14 +4,11 @@
 -- ============================================================
 
 -- ── 1. Extender tabla clientes ────────────────────────────
--- Agregar campos que el bot de WhatsApp recopilará
-
 ALTER TABLE clientes
   ADD COLUMN IF NOT EXISTS direccion      TEXT,
   ADD COLUMN IF NOT EXISTS ciudad         TEXT,
-  ADD COLUMN IF NOT EXISTS referencia     TEXT,   -- ej. "frente al parque"
+  ADD COLUMN IF NOT EXISTS referencia     TEXT,
   ADD COLUMN IF NOT EXISTS fuente         TEXT DEFAULT 'web',
-                                                  -- 'web' | 'whatsapp' | 'telegram'
   ADD COLUMN IF NOT EXISTS primera_visita TIMESTAMPTZ DEFAULT NOW();
 
 -- ── 2. Tabla de pedidos WhatsApp ──────────────────────────
@@ -19,51 +16,70 @@ CREATE TABLE IF NOT EXISTS pedidos_whatsapp (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   -- Quién pide
-  whatsapp         TEXT NOT NULL,               -- número completo ej. 50212345678
+  whatsapp         TEXT NOT NULL,
   nombre_cliente   TEXT,
   cliente_id       UUID REFERENCES clientes(id) ON DELETE SET NULL,
 
-  -- Qué pide (texto libre que registra la IA)
-  productos        TEXT NOT NULL,               -- "3 boxers talla M color negro"
+  -- Qué pide
+  productos        TEXT NOT NULL,
   total_estimado   NUMERIC(10,2),
 
   -- Cómo lo recibe
   tipo_entrega     TEXT NOT NULL DEFAULT 'tienda'
                      CHECK (tipo_entrega IN ('tienda', 'envio')),
-  direccion_envio  TEXT,                        -- si tipo_entrega = 'envio'
+  direccion_envio  TEXT,
   ciudad_envio     TEXT,
   referencia_envio TEXT,
-  hora_retiro      TEXT,                        -- si tipo_entrega = 'tienda'
+  hora_retiro      TEXT,
 
   -- Pago
-  metodo_pago      TEXT,                        -- 'efectivo' | 'tarjeta' | 'transferencia'
+  metodo_pago      TEXT,
+                   -- 'efectivo' | 'tarjeta' | 'transferencia'
 
-  -- Estado del pedido
+  -- ── COMPROBANTE DE PAGO ──────────────────────────────────
+  -- URL pública de la imagen guardada en Supabase Storage
+  comprobante_url        TEXT,
+
+  -- Estado de verificación del pago (independiente del estado del pedido)
+  estado_pago            TEXT NOT NULL DEFAULT 'pendiente'
+                           CHECK (estado_pago IN (
+                             'pendiente',          -- aún no han pagado / no han enviado foto
+                             'comprobante_enviado', -- cliente envió la foto, encargado no la ha visto
+                             'pago_verificado',     -- encargado confirmó que el pago es válido
+                             'pago_rechazado'       -- foto no válida o pago no reconocido
+                           )),
+
+  comprobante_recibido_en TIMESTAMPTZ,              -- cuándo llegó la foto
+  pago_verificado_en      TIMESTAMPTZ,              -- cuándo lo aprobó el encargado
+  -- ────────────────────────────────────────────────────────
+
+  -- Estado del pedido (flujo operativo)
   estado           TEXT NOT NULL DEFAULT 'pendiente'
                      CHECK (estado IN (
-                       'pendiente',    -- recién creado por el bot
+                       'pendiente',    -- recién creado
                        'confirmado',   -- encargado lo revisó
-                       'en_proceso',   -- se está preparando
-                       'listo',        -- listo para entrega/retiro
+                       'en_proceso',   -- preparando el pedido
+                       'listo',        -- listo para retiro o envío
                        'entregado',    -- completado
                        'cancelado'
                      )),
 
   -- Trazabilidad
   atendido_por     UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-  notas            TEXT,                        -- observaciones del encargado
-  conversacion_id  TEXT,                        -- ID de la conv en ManyChat
+  notas            TEXT,
+  conversacion_id  TEXT,
 
   creado_en        TIMESTAMPTZ DEFAULT NOW(),
   actualizado_en   TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Índices para búsquedas frecuentes
-CREATE INDEX IF NOT EXISTS idx_pedidos_wa_whatsapp ON pedidos_whatsapp(whatsapp);
-CREATE INDEX IF NOT EXISTS idx_pedidos_wa_estado   ON pedidos_whatsapp(estado);
-CREATE INDEX IF NOT EXISTS idx_pedidos_wa_fecha     ON pedidos_whatsapp(creado_en DESC);
+-- Índices
+CREATE INDEX IF NOT EXISTS idx_pedidos_wa_whatsapp   ON pedidos_whatsapp(whatsapp);
+CREATE INDEX IF NOT EXISTS idx_pedidos_wa_estado      ON pedidos_whatsapp(estado);
+CREATE INDEX IF NOT EXISTS idx_pedidos_wa_estado_pago ON pedidos_whatsapp(estado_pago);
+CREATE INDEX IF NOT EXISTS idx_pedidos_wa_fecha       ON pedidos_whatsapp(creado_en DESC);
 
--- Trigger: actualiza "actualizado_en" automáticamente
+-- Trigger actualizar timestamp
 CREATE OR REPLACE FUNCTION fn_actualizar_timestamp()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
@@ -77,10 +93,24 @@ CREATE TRIGGER trg_pedidos_wa_ts
   BEFORE UPDATE ON pedidos_whatsapp
   FOR EACH ROW EXECUTE FUNCTION fn_actualizar_timestamp();
 
--- ── 3. RLS — permite acceso desde anon key ────────────────
+-- ── 3. Storage bucket para comprobantes ───────────────────
+-- Crear bucket público (las fotos las ve el encargado en el panel)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('comprobantes', 'comprobantes', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Política: anon puede subir imágenes al bucket
+CREATE POLICY "anon_upload_comprobantes"
+  ON storage.objects FOR INSERT TO anon
+  WITH CHECK (bucket_id = 'comprobantes');
+
+CREATE POLICY "anon_read_comprobantes"
+  ON storage.objects FOR SELECT TO anon
+  USING (bucket_id = 'comprobantes');
+
+-- ── 4. RLS tablas ─────────────────────────────────────────
 ALTER TABLE pedidos_whatsapp ENABLE ROW LEVEL SECURITY;
 
--- El bot y el panel web usan la anon key → necesitan todos los permisos
 CREATE POLICY "anon_select_pedidos_wa" ON pedidos_whatsapp
   FOR SELECT TO anon USING (true);
 
@@ -90,8 +120,6 @@ CREATE POLICY "anon_insert_pedidos_wa" ON pedidos_whatsapp
 CREATE POLICY "anon_update_pedidos_wa" ON pedidos_whatsapp
   FOR UPDATE TO anon USING (true);
 
--- También extender RLS de clientes para INSERT desde WhatsApp
--- (en caso de que sea cliente nuevo que el bot registra)
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -103,8 +131,7 @@ BEGIN
   END IF;
 END $$;
 
--- ── 4. Vista para panel de encargado ──────────────────────
--- Muestra todos los pedidos WhatsApp pendientes con datos del cliente
+-- ── 5. Vista para panel encargado ─────────────────────────
 CREATE OR REPLACE VIEW vw_pedidos_whatsapp_pendientes AS
 SELECT
   p.id,
@@ -118,16 +145,21 @@ SELECT
     WHEN p.tipo_entrega = 'envio'
       THEN COALESCE(p.direccion_envio || ', ' || p.ciudad_envio, p.direccion_envio)
     ELSE 'Retira en tienda — ' || COALESCE(p.hora_retiro, 'sin hora')
-  END AS entrega_detalle,
+  END                          AS entrega_detalle,
   p.metodo_pago,
+  p.estado_pago,
+  p.comprobante_url,           -- encargado puede ver la foto directamente
+  p.comprobante_recibido_en,
   p.estado,
   p.notas
 FROM pedidos_whatsapp p
 WHERE p.estado IN ('pendiente', 'confirmado', 'en_proceso')
-ORDER BY p.creado_en DESC;
+ORDER BY
+  -- Prioriza los que ya enviaron comprobante pero no se han verificado
+  (p.estado_pago = 'comprobante_enviado') DESC,
+  p.creado_en DESC;
 
--- RLS en la vista
 ALTER VIEW vw_pedidos_whatsapp_pendientes OWNER TO postgres;
 
--- ── 5. Verificar ──────────────────────────────────────────
-SELECT 'Migración WhatsApp completada correctamente' AS resultado;
+-- ── 6. Verificar ──────────────────────────────────────────
+SELECT 'Migración WhatsApp con comprobantes completada' AS resultado;
