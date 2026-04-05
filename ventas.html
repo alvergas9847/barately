@@ -154,8 +154,72 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .exito-sub{color:var(--muted);font-size:13px;}
 .cambio-box{background:rgba(106,255,180,.08);border:1px solid rgba(106,255,180,.2);border-radius:10px;padding:12px;margin:12px 0;font-size:13px;}
 
-@media(max-width:1100px){.venta-layout{grid-template-columns:1fr;}.panel-der{position:static;}}
-@media(max-width:900px){.nav-main{margin-left:0;}.nav-hamburger{display:block!important;}.venta-layout{padding:12px;}}
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media(max-width:1100px){
+  .venta-layout{grid-template-columns:1fr;}
+  .panel-der{position:static;}
+}
+@media(max-width:900px){
+  .nav-main{margin-left:0;}
+  .nav-hamburger{display:block!important;}
+  .venta-layout{padding:12px;gap:12px;}
+  .topbar{padding:10px 14px;}
+  .fecha-chip{display:none;}
+}
+@media(max-width:600px){
+  /* Topbar */
+  .page-title{font-size:15px;}
+  .btn-logout{padding:4px 10px;font-size:11px;}
+
+  /* Layout */
+  .venta-layout{padding:8px;gap:10px;}
+  .card-body{padding:10px 12px;}
+  .card-hdr{padding:10px 12px;}
+
+  /* Ocultar badge F2 en móvil */
+  .search-badge{display:none;}
+
+  /* Búsqueda */
+  .search-prod{font-size:16px;padding:12px 14px;}
+
+  /* Carrito: apilar en 2 filas en pantallas pequeñas */
+  .carrito-item{
+    grid-template-columns:1fr auto;
+    grid-template-rows:auto auto;
+    gap:6px 8px;
+    padding:10px 0;
+  }
+  .carrito-item > div:first-child{grid-column:1;grid-row:1;}
+  .ci-del{grid-column:2;grid-row:1;align-self:center;}
+  .ci-qty{grid-column:1;grid-row:2;}
+  .carrito-item > div:nth-child(3){grid-column:1;grid-row:2;display:flex;align-items:center;gap:6px;margin-left:auto;}
+  .ci-precio{grid-column:2;grid-row:2;align-self:center;min-width:unset;text-align:right;}
+  .ci-nombre{font-size:14px;}
+
+  /* Descuento global */
+  .desc-global{flex-wrap:wrap;}
+  .desc-input{width:80px;}
+
+  /* Pagos */
+  .pago-row{grid-template-columns:1fr 90px 26px;}
+
+  /* Caja totales */
+  .caja-row.total .val{font-size:26px;}
+
+  /* Botones caja */
+  .btn-cobrar{padding:16px;font-size:16px;border-radius:12px;}
+  .btn-limpiar{padding:12px;}
+
+  /* Variantes — más compactas */
+  .variantes-grid{grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;}
+
+  /* Modal recibo full-screen */
+  .modal-bg{padding:0;align-items:flex-end;}
+  .modal{border-radius:16px 16px 0 0;max-width:100%;max-height:92vh;}
+  .exito-icon{font-size:44px;}
+  .exito-titulo{font-size:18px;}
+  .exito-monto{font-size:26px;}
+}
 </style>
 </head>
 <body>
