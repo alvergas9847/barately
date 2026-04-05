@@ -72,7 +72,7 @@ def construir_conversacion() -> ConversationHandler:
                 MessageHandler(TEXT, venta_metodo)
             ],
             VENTA_CONFIRMAR: [
-                MessageHandler(filters.Regex("^CONFIRMAR$|^CANCELAR$"), guardar_venta),
+                MessageHandler(filters.Regex("CONFIRMAR|CANCELAR"), guardar_venta),
                 MessageHandler(TEXT, venta_monto),
             ],
             STOCK_BUSCAR: [
