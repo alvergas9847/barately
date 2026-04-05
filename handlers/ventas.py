@@ -3,13 +3,13 @@ BARATELY Bot v2 — handlers/ventas.py
 Flujo completo de registro de ventas.
 """
 from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ContextTypes
+from telegram.ext import ContextTypes, ConversationHandler
 from services import supabase_svc as db
 from services.mensajes import (
     q, teclado_menu, teclado_cancelar, sin_teclado,
     turno_actual, hora_actual, formato_venta_resumen
 )
-from handlers.auth import usuario_actual
+from handlers.auth import usuario_actual, verificar_sesion
 from config.settings import logger
 
 # Estados del flujo de venta
@@ -24,74 +24,105 @@ from config.settings import logger
     VENTA_CONFIRMAR,
 ) = range(10, 18)
 
+# Texto del botón para "venta general" (debe coincidir exactamente)
+BTN_GENERAL  = "👤 Venta general"
+BTN_TERMINAR = "✅ Terminar venta"
+BTN_AGREGAR  = "➕ Agregar producto"
+BTN_CONFIRMAR = "✅ CONFIRMAR"
+BTN_CANCELAR  = "❌ CANCELAR"
+
+
+# ── Helpers ───────────────────────────────────────────────────
 
 def init_venta(ctx: ContextTypes.DEFAULT_TYPE):
-    """Inicializa el carrito de venta en el contexto."""
     ctx.user_data["venta"] = {
-        "items":         [],
-        "pagos":         [],
-        "cliente_id":    None,
-        "cliente_nombre": "General"
+        "items":          [],
+        "pagos":          [],
+        "cliente_id":     None,
+        "cliente_nombre": "General",
     }
 
 
-def venta_actual(ctx) -> dict:
-    return ctx.user_data.get("venta", {})
+def venta_actual(ctx: ContextTypes.DEFAULT_TYPE) -> dict:
+    """Devuelve el dict de venta activo, re-inicializando si falta."""
+    if "venta" not in ctx.user_data:
+        init_venta(ctx)
+    return ctx.user_data["venta"]
 
 
-# ── PASO 1: Buscar cliente ────────────────────────────────────
+def _es_cancelar(texto: str) -> bool:
+    return texto in ("❌ Cancelar", BTN_CANCELAR)
+
+
+async def _cancelar(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    usuario = usuario_actual(ctx)
+    await update.message.reply_text(
+        "❌ Operación cancelada.",
+        reply_markup=teclado_menu(usuario["rol"]) if usuario else sin_teclado()
+    )
+    return 1  # MENU_PRINCIPAL
+
+
+# ── PASO 1: Cliente ───────────────────────────────────────────
 
 async def iniciar_venta(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
     init_venta(ctx)
     await update.message.reply_text(
-        "📦 *Nueva Venta*\n\n"
-        "¿El cliente tiene cuenta registrada?\n"
-        "Escribe su *nombre o teléfono* para buscarlo,\n"
-        "o escribe *GENERAL* para venta sin cliente.",
+        "🛒 *Nueva Venta — Paso 1/5*\n\n"
+        "¿A quién le vendemos?\n"
+        "• Toca *Venta general* si no tiene cuenta\n"
+        "• O escribe su *nombre o teléfono* para buscarlo",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(
-            [["GENERAL"], ["❌ Cancelar"]], resize_keyboard=True
+            [[BTN_GENERAL], ["❌ Cancelar"]],
+            resize_keyboard=True
         )
     )
     return VENTA_CLIENTE
 
 
 async def venta_cliente(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
     texto   = update.message.text.strip()
     usuario = usuario_actual(ctx)
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1  # MENU_PRINCIPAL
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
-    if texto.upper() == "GENERAL":
-        venta_actual(ctx)["cliente_nombre"] = "General"
-        venta_actual(ctx)["cliente_id"]     = None
+    venta = venta_actual(ctx)
+
+    if texto == BTN_GENERAL or texto.upper() == "GENERAL":
+        venta["cliente_nombre"] = "General"
+        venta["cliente_id"]     = None
     else:
         clientes = db.buscar_cliente(texto)
         if clientes:
             c = clientes[0]
-            venta_actual(ctx)["cliente_id"]     = c["id"]
-            venta_actual(ctx)["cliente_nombre"] = f"{c['nombre']} {c.get('apellidos','')}"
-
-            # Mostrar últimas 2 compras
+            venta["cliente_id"]     = c["id"]
+            venta["cliente_nombre"] = f"{c['nombre']} {c.get('apellidos','')  }".strip()
             historial = db.ultimas_compras(c["id"])
-            msg = f"✅ Cliente: *{venta_actual(ctx)['cliente_nombre']}*\n\n"
+            msg = f"✅ Cliente: *{venta['cliente_nombre']}*\n\n"
             if historial:
                 msg += "📋 *Últimas compras:*\n"
                 for h in historial:
-                    fecha = h.get("fecha", "")[:10]
-                    msg += f"  • {fecha} — {q(h.get('total',0))} — {h.get('productos','')}\n"
+                    msg += f"  • {h.get('fecha','')[:10]} — {q(h.get('total',0))}\n"
             else:
-                msg += "_Sin compras anteriores_\n"
+                msg += "_Sin compras anteriores_"
             await update.message.reply_text(msg, parse_mode="Markdown")
         else:
-            venta_actual(ctx)["cliente_nombre"] = "General"
-            venta_actual(ctx)["cliente_id"]     = None
-            await update.message.reply_text("ℹ️ Cliente no encontrado. Se registrará como venta general.")
+            venta["cliente_nombre"] = "General"
+            venta["cliente_id"]     = None
+            await update.message.reply_text(
+                "ℹ️ Cliente no encontrado. Se registrará como venta general."
+            )
 
     await update.message.reply_text(
-        "Escribe el *nombre o código de barra* del producto:",
+        "🛒 *Paso 2/5 — Producto*\n\nEscribe el nombre o código del producto:",
         parse_mode="Markdown",
         reply_markup=teclado_cancelar()
     )
@@ -101,16 +132,20 @@ async def venta_cliente(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 # ── PASO 2: Buscar producto ───────────────────────────────────
 
 async def venta_buscar_producto(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
     texto   = update.message.text.strip()
     usuario = usuario_actual(ctx)
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
     productos = db.buscar_producto(texto)
     if not productos:
-        await update.message.reply_text("❌ Producto no encontrado. Intenta con otro nombre:")
+        await update.message.reply_text(
+            "❌ Producto no encontrado. Intenta con otro nombre o código:"
+        )
         return VENTA_PRODUCTO
 
     ctx.user_data["productos_encontrados"] = productos
@@ -124,23 +159,26 @@ async def venta_buscar_producto(update: Update, ctx: ContextTypes.DEFAULT_TYPE) 
     return VENTA_TALLA
 
 
-# ── PASO 3: Seleccionar talla/color ──────────────────────────
+# ── PASO 3: Seleccionar talla ─────────────────────────────────
 
 async def venta_seleccionar_producto(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
     texto    = update.message.text.strip()
     usuario  = usuario_actual(ctx)
     productos = ctx.user_data.get("productos_encontrados", [])
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
-    if texto == "✅ Terminar venta":
+    if texto == BTN_TERMINAR:
         if not venta_actual(ctx)["items"]:
-            await update.message.reply_text("⚠️ Agrega al menos un producto.")
+            await update.message.reply_text("⚠️ Agrega al menos un producto antes de terminar.")
             return VENTA_TALLA
         return await pedir_pago(update, ctx)
 
+    # Buscar producto por nombre (substring)
     producto = next((p for p in productos if p["nombre"] in texto), None)
     if not producto:
         await update.message.reply_text("Por favor selecciona un producto de la lista.")
@@ -159,8 +197,8 @@ async def venta_seleccionar_producto(update: Update, ctx: ContextTypes.DEFAULT_T
     ctx.user_data["variantes_disponibles"] = variantes
     kb = []
     for v in variantes:
-        talla = v.get("tallas", {}).get("nombre", "?") if v.get("tallas") else "?"
-        color = v.get("colores", {}).get("nombre", "") if v.get("colores") else ""
+        talla = (v.get("tallas") or {}).get("nombre", "?")
+        color = (v.get("colores") or {}).get("nombre", "")
         label = f"T:{talla}"
         if color:
             label += f" {color}"
@@ -170,7 +208,7 @@ async def venta_seleccionar_producto(update: Update, ctx: ContextTypes.DEFAULT_T
 
     await update.message.reply_text(
         f"*{producto['nombre']}* — {q(producto['precio_venta'])}\n"
-        f"Selecciona la talla:",
+        "Selecciona la talla:",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True)
     )
@@ -180,18 +218,19 @@ async def venta_seleccionar_producto(update: Update, ctx: ContextTypes.DEFAULT_T
 # ── PASO 4: Cantidad ──────────────────────────────────────────
 
 async def venta_seleccionar_talla(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
     texto     = update.message.text.strip()
-    usuario   = usuario_actual(ctx)
     variantes = ctx.user_data.get("variantes_disponibles", [])
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
     variante = None
     for v in variantes:
-        talla = v.get("tallas", {}).get("nombre", "?") if v.get("tallas") else "?"
-        color = v.get("colores", {}).get("nombre", "") if v.get("colores") else ""
+        talla = (v.get("tallas") or {}).get("nombre", "?")
+        color = (v.get("colores") or {}).get("nombre", "")
         if f"T:{talla}" in texto:
             if not color or color in texto:
                 variante = v
@@ -203,9 +242,10 @@ async def venta_seleccionar_talla(update: Update, ctx: ContextTypes.DEFAULT_TYPE
 
     ctx.user_data["variante_actual"] = variante
     await update.message.reply_text(
-        f"¿Cuántas unidades? (disponibles: {variante['stock']})",
+        f"¿Cuántas unidades? (disponibles: *{variante['stock']}*)",
+        parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(
-            [["1", "2", "3"], ["4", "5", "10"], ["❌ Cancelar"]],
+            [["1", "2", "3"], ["4", "5", "6"], ["❌ Cancelar"]],
             resize_keyboard=True
         )
     )
@@ -213,100 +253,101 @@ async def venta_seleccionar_talla(update: Update, ctx: ContextTypes.DEFAULT_TYPE
 
 
 async def venta_cantidad(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
     texto    = update.message.text.strip()
-    usuario  = usuario_actual(ctx)
     variante = ctx.user_data.get("variante_actual", {})
     producto = ctx.user_data.get("producto_actual", {})
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
     try:
         cantidad = int(texto)
+        if cantidad <= 0:
+            raise ValueError
     except ValueError:
-        await update.message.reply_text("Escribe un número válido.")
+        await update.message.reply_text("Escribe un número válido (mayor a 0).")
         return VENTA_MAS_PRODUCTOS
 
-    if cantidad <= 0:
-        await update.message.reply_text("La cantidad debe ser mayor a 0.")
-        return VENTA_MAS_PRODUCTOS
-
-    if cantidad > variante.get("stock", 0):
+    stock_disp = variante.get("stock", 0)
+    if cantidad > stock_disp:
         await update.message.reply_text(
-            f"⚠️ Solo hay {variante['stock']} unidades disponibles."
+            f"⚠️ Solo hay *{stock_disp}* unidades disponibles.",
+            parse_mode="Markdown"
         )
         return VENTA_MAS_PRODUCTOS
 
-    talla = variante.get("tallas", {}).get("nombre", "?") if variante.get("tallas") else "?"
-    color = variante.get("colores", {}).get("nombre", "") if variante.get("colores") else ""
+    talla  = (variante.get("tallas") or {}).get("nombre", "?")
+    color  = (variante.get("colores") or {}).get("nombre", "")
     precio = float(producto.get("precio_venta", 0))
 
-    item = {
-        "variante_id":    variante["id"],
-        "nombre":         producto["nombre"],
-        "talla":          talla,
-        "color":          color,
-        "cantidad":       cantidad,
+    venta_actual(ctx)["items"].append({
+        "variante_id":     variante["id"],
+        "nombre":          producto["nombre"],
+        "talla":           talla,
+        "color":           color,
+        "cantidad":        cantidad,
         "precio_unitario": precio,
-        "subtotal":       cantidad * precio
-    }
-    venta_actual(ctx)["items"].append(item)
+        "subtotal":        cantidad * precio,
+    })
 
-    # Mostrar carrito
+    # Resumen del carrito
     items = venta_actual(ctx)["items"]
     total = sum(i["subtotal"] for i in items)
-    resumen = "🛒 *Carrito:*\n"
+    msg   = "🛒 *Carrito actual:*\n"
     for it in items:
-        c = f" {it['color']}" if it.get("color") else ""
-        resumen += f"  • {it['nombre']} T:{it['talla']}{c} x{it['cantidad']} = {q(it['subtotal'])}\n"
-    resumen += f"\n*Subtotal: {q(total)}*"
+        c    = f" {it['color']}" if it.get("color") else ""
+        msg += f"  • {it['nombre']} T:{it['talla']}{c} ×{it['cantidad']} = *{q(it['subtotal'])}*\n"
+    msg += f"\n💰 *Subtotal: {q(total)}*"
 
     await update.message.reply_text(
-        resumen + "\n\n¿Agregar otro producto o terminar?",
+        msg + "\n\n¿Agregar otro producto o terminar?",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(
-            [["📦 Agregar otro producto", "✅ Terminar venta"], ["❌ Cancelar"]],
+            [[BTN_AGREGAR, BTN_TERMINAR], ["❌ Cancelar"]],
             resize_keyboard=True
         )
     )
     return VENTA_METODO_PAGO
 
 
-# ── PASO 5: Pago ──────────────────────────────────────────────
+# ── PASO 5: Decisión ──────────────────────────────────────────
 
 async def venta_decision(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    """Decisión: agregar más productos o ir al pago."""
-    texto   = update.message.text.strip()
-    usuario = usuario_actual(ctx)
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    texto = update.message.text.strip()
 
-    if texto == "📦 Agregar otro producto":
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
+
+    if texto == BTN_AGREGAR:
         await update.message.reply_text(
             "Escribe el nombre o código del siguiente producto:",
             reply_markup=teclado_cancelar()
         )
         return VENTA_PRODUCTO
 
-    if texto == "✅ Terminar venta":
+    if texto == BTN_TERMINAR:
         return await pedir_pago(update, ctx)
 
     await update.message.reply_text(
-        "Selecciona *Agregar otro producto* o *Terminar venta*.",
+        f"Toca *{BTN_AGREGAR}* o *{BTN_TERMINAR}*.",
         parse_mode="Markdown"
     )
     return VENTA_METODO_PAGO
 
 
+# ── PASO 5b: Método de pago ───────────────────────────────────
+
 async def pedir_pago(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    """Pide el método de pago."""
-    items  = venta_actual(ctx)["items"]
-    pagos  = venta_actual(ctx)["pagos"]
-    total  = sum(i["subtotal"] for i in items)
-    pagado = sum(p["monto"] for p in pagos)
+    items     = venta_actual(ctx)["items"]
+    pagos     = venta_actual(ctx)["pagos"]
+    total     = sum(i["subtotal"] for i in items)
+    pagado    = sum(p["monto"] for p in pagos)
     pendiente = total - pagado
 
     if pendiente <= 0.01:
@@ -314,14 +355,21 @@ async def pedir_pago(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
     metodos = db.obtener_metodos_pago()
     ctx.user_data["metodos_pago"] = metodos
+
+    if not metodos:
+        await update.message.reply_text(
+            "⚠️ No hay métodos de pago configurados. Contacta al administrador."
+        )
+        return await _cancelar(update, ctx)
+
     kb = [[m["nombre"].capitalize()] for m in metodos]
     kb.append(["❌ Cancelar"])
 
-    msg = f"💳 *Total: {q(total)}*\n"
+    msg  = f"💳 *Total: {q(total)}*\n"
     if pagado > 0:
         msg += f"Registrado: {q(pagado)}\n"
         msg += f"*Pendiente: {q(pendiente)}*\n"
-    msg += "\n¿Método de pago?"
+    msg += "\n🛒 *Paso 4/5 — Método de pago:*"
 
     await update.message.reply_text(
         msg,
@@ -332,14 +380,14 @@ async def pedir_pago(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def venta_metodo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    """Selección de método de pago."""
-    texto    = update.message.text.strip()
-    usuario  = usuario_actual(ctx)
-    metodos  = ctx.user_data.get("metodos_pago", [])
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    texto   = update.message.text.strip()
+    metodos = ctx.user_data.get("metodos_pago", [])
+
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
     metodo = next((m for m in metodos if m["nombre"].lower() == texto.lower()), None)
     if not metodo:
@@ -347,16 +395,16 @@ async def venta_metodo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         return VENTA_MONTO_PAGO
 
     ctx.user_data["metodo_actual"] = metodo
-    items  = venta_actual(ctx)["items"]
-    pagos  = venta_actual(ctx)["pagos"]
-    total  = sum(i["subtotal"] for i in items)
-    pagado = sum(p["monto"] for p in pagos)
+    items     = venta_actual(ctx)["items"]
+    pagos     = venta_actual(ctx)["pagos"]
+    total     = sum(i["subtotal"] for i in items)
+    pagado    = sum(p["monto"] for p in pagos)
     pendiente = total - pagado
 
     await update.message.reply_text(
-        f"Monto en *{metodo['nombre'].capitalize()}*:\n"
-        f"(Pendiente: {q(pendiente)})\n\n"
-        f"Escribe el monto:",
+        f"💳 *{metodo['nombre'].capitalize()}*\n"
+        f"Pendiente: *{q(pendiente)}*\n\n"
+        "Escribe el monto recibido:",
         parse_mode="Markdown",
         reply_markup=teclado_cancelar()
     )
@@ -364,42 +412,46 @@ async def venta_metodo(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
 
 
 async def venta_monto(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    """Registra el monto del pago."""
-    texto   = update.message.text.strip()
-    usuario = usuario_actual(ctx)
-    metodo  = ctx.user_data.get("metodo_actual", {})
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("❌ Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
-        return 1
+    texto  = update.message.text.strip()
+    metodo = ctx.user_data.get("metodo_actual", {})
+
+    if _es_cancelar(texto):
+        return await _cancelar(update, ctx)
 
     try:
         monto = float(texto.replace(",", "").replace("Q", "").strip())
+        if monto <= 0:
+            raise ValueError
     except ValueError:
-        await update.message.reply_text("Escribe un monto válido. Ejemplo: 150 o 1500.50")
+        await update.message.reply_text(
+            "Escribe un monto válido. Ejemplo: *150* o *1500.50*",
+            parse_mode="Markdown"
+        )
         return VENTA_CONFIRMAR
 
     venta_actual(ctx)["pagos"].append({
-        "metodo_id": metodo["id"],
-        "nombre":    metodo["nombre"],
+        "metodo_id": metodo.get("id"),
+        "nombre":    metodo.get("nombre", ""),
         "monto":     monto,
-        "banco":     metodo.get("banco")
+        "banco":     metodo.get("banco"),
     })
 
-    items  = venta_actual(ctx)["items"]
-    pagos  = venta_actual(ctx)["pagos"]
-    total  = sum(i["subtotal"] for i in items)
-    pagado = sum(p["monto"] for p in pagos)
+    items     = venta_actual(ctx)["items"]
+    pagos     = venta_actual(ctx)["pagos"]
+    total     = sum(i["subtotal"] for i in items)
+    pagado    = sum(p["monto"] for p in pagos)
     pendiente = total - pagado
 
     if pendiente > 0.01:
-        # Aún falta pago — pedir otro método
         metodos = db.obtener_metodos_pago()
         ctx.user_data["metodos_pago"] = metodos
         kb = [[m["nombre"].capitalize()] for m in metodos]
         kb.append(["❌ Cancelar"])
         await update.message.reply_text(
-            f"✅ {metodo['nombre'].capitalize()}: {q(monto)} registrado.\n"
+            f"✅ {metodo.get('nombre','').capitalize()}: {q(monto)} registrado.\n"
             f"*Pendiente: {q(pendiente)}*\n\n¿Otro método de pago?",
             parse_mode="Markdown",
             reply_markup=ReplyKeyboardMarkup(kb, resize_keyboard=True)
@@ -409,19 +461,18 @@ async def venta_monto(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     return await confirmar_venta(update, ctx)
 
 
-# ── PASO 6: Confirmar y guardar ───────────────────────────────
+# ── PASO 6: Confirmar ─────────────────────────────────────────
 
 async def confirmar_venta(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    """Muestra resumen y pide confirmación."""
     venta   = venta_actual(ctx)
     resumen = formato_venta_resumen(
         venta["items"], venta["pagos"], venta["cliente_nombre"]
     )
     await update.message.reply_text(
-        resumen + "\n¿Confirmar venta?",
+        "🛒 *Paso 5/5 — Confirmar venta*\n\n" + resumen + "\n¿Todo correcto?",
         parse_mode="Markdown",
         reply_markup=ReplyKeyboardMarkup(
-            [["✅ CONFIRMAR", "❌ CANCELAR"]],
+            [[BTN_CONFIRMAR, BTN_CANCELAR]],
             resize_keyboard=True
         )
     )
@@ -429,12 +480,14 @@ async def confirmar_venta(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int
 
 
 async def guardar_venta(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
-    """Guarda la venta en Supabase."""
-    texto   = update.message.text.strip()
+    if not await verificar_sesion(update, ctx):
+        return ConversationHandler.END
+
+    texto   = update.message.text.strip().upper()
     usuario = usuario_actual(ctx)
     venta   = venta_actual(ctx)
 
-    if texto == "❌ CANCELAR":
+    if "CANCELAR" in texto:
         init_venta(ctx)
         await update.message.reply_text(
             "❌ Venta cancelada.",
@@ -442,31 +495,31 @@ async def guardar_venta(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
         )
         return 1
 
-    if texto != "✅ CONFIRMAR":
+    if "CONFIRMAR" not in texto:
         return VENTA_CONFIRMAR
 
     venta_id = db.registrar_venta(
-        usuario_id   = usuario["id"],
-        cliente_id   = venta.get("cliente_id"),
-        items        = venta["items"],
-        pagos        = venta["pagos"],
-        turno        = turno_actual()
+        usuario_id = usuario["id"],
+        cliente_id = venta.get("cliente_id"),
+        items      = venta["items"],
+        pagos      = venta["pagos"],
+        turno      = turno_actual()
     )
 
     if venta_id:
         total = sum(i["subtotal"] for i in venta["items"])
         await update.message.reply_text(
-            f"✅ *¡Venta registrada!*\n\n"
-            f"Total: *{q(total)}*\n"
-            f"Vendedor: {usuario['nombre']}\n"
-            f"Hora: {hora_actual()}",
+            f"✅ *¡Venta registrada exitosamente!*\n\n"
+            f"👤 Cliente: {venta['cliente_nombre']}\n"
+            f"💰 Total: *{q(total)}*\n"
+            f"🕐 Hora: {hora_actual()}",
             parse_mode="Markdown",
             reply_markup=teclado_menu(usuario["rol"])
         )
         logger.info(f"Venta {venta_id} guardada por {usuario['nombre']}")
     else:
         await update.message.reply_text(
-            "❌ Error al guardar la venta. Contacta al administrador.",
+            "❌ Error al guardar la venta. Intenta de nuevo o contacta al administrador.",
             reply_markup=teclado_menu(usuario["rol"])
         )
 

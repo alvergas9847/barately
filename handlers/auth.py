@@ -127,3 +127,15 @@ def usuario_actual(ctx: ContextTypes.DEFAULT_TYPE) -> dict | None:
 
 def tiene_permiso(usuario: dict, roles: list) -> bool:
     return usuario.get("rol") in roles
+
+
+async def verificar_sesion(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> bool:
+    """Verifica sesión activa. Devuelve True si válida, False y avisa si expiró."""
+    if ctx.user_data.get("usuario"):
+        return True
+    await update.message.reply_text(
+        "⏱ Tu sesión expiró o el bot fue reiniciado.\n"
+        "Escribe /start para volver a entrar.",
+        reply_markup=sin_teclado()
+    )
+    return False

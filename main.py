@@ -3,9 +3,10 @@ BARATELY Bot v2 — main.py
 Punto de entrada.
 """
 import sys
+from telegram import Update
 from telegram.ext import (
     Application, CommandHandler, MessageHandler,
-    ConversationHandler, filters
+    ConversationHandler, filters, ContextTypes
 )
 from config.settings import TELEGRAM_TOKEN, validar_config, logger
 from config.database import verificar_conexion
@@ -29,15 +30,27 @@ from handlers.inventario import (
     vale_monto, vale_motivo,
     STOCK_BUSCAR, VALE_MONTO, VALE_MOTIVO
 )
-from services.mensajes import (
-    BTN_VENTA, BTN_VENTAS, BTN_STOCK, BTN_VALE,
-    BTN_RESUMEN, BTN_ALERTAS, BTN_SALIR
-)
+
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Captura errores no manejados y los loguea."""
+    logger.error("Excepcion no capturada:", exc_info=context.error)
+    if isinstance(update, Update) and update.message:
+        try:
+            await update.message.reply_text(
+                "⚠️ Ocurrió un error inesperado.\n"
+                "Escribe /start para reiniciar."
+            )
+        except Exception:
+            pass
 
 
 def construir_conversacion() -> ConversationHandler:
     TEXT = filters.TEXT & ~filters.COMMAND
 
+    # Usamos el emoji único de cada botón para mayor robustez.
+    # Cualquier variación del texto del botón que contenga el emoji
+    # será reconocida. Los números (1-6, 0) se mantienen como fallback.
     return ConversationHandler(
         entry_points=[CommandHandler("start", cmd_start)],
         states={
@@ -45,14 +58,13 @@ def construir_conversacion() -> ConversationHandler:
                 MessageHandler(TEXT, recibir_key)
             ],
             MENU_PRINCIPAL: [
-                # Botones descriptivos (nuevo) + números (compatibilidad)
-                MessageHandler(filters.Regex(f"^({BTN_VENTA}|1)$"),   iniciar_venta),
-                MessageHandler(filters.Regex(f"^({BTN_VENTAS}|2)$"),  mis_ventas),
-                MessageHandler(filters.Regex(f"^({BTN_STOCK}|3)$"),   iniciar_stock),
-                MessageHandler(filters.Regex(f"^({BTN_VALE}|4)$"),    iniciar_vale),
-                MessageHandler(filters.Regex(f"^({BTN_RESUMEN}|5)$"), resumen_dia),
-                MessageHandler(filters.Regex(f"^({BTN_ALERTAS}|6)$"), ver_alertas),
-                MessageHandler(filters.Regex(f"^({BTN_SALIR}|0)$"),   cerrar_sesion),
+                MessageHandler(filters.Regex(r"🛒|^1$"),   iniciar_venta),
+                MessageHandler(filters.Regex(r"📊|^2$"),   mis_ventas),
+                MessageHandler(filters.Regex(r"🔍|^3$"),   iniciar_stock),
+                MessageHandler(filters.Regex(r"💵|^4$"),   iniciar_vale),
+                MessageHandler(filters.Regex(r"📈|^5$"),   resumen_dia),
+                MessageHandler(filters.Regex(r"🔔|^6$"),   ver_alertas),
+                MessageHandler(filters.Regex(r"🚪|^0$"),   cerrar_sesion),
                 MessageHandler(TEXT, mostrar_menu),
             ],
             VENTA_CLIENTE: [
@@ -77,7 +89,7 @@ def construir_conversacion() -> ConversationHandler:
                 MessageHandler(TEXT, venta_metodo)
             ],
             VENTA_CONFIRMAR: [
-                MessageHandler(filters.Regex("CONFIRMAR|CANCELAR"), guardar_venta),
+                MessageHandler(filters.Regex(r"(?i)CONFIRMAR|CANCELAR"), guardar_venta),
                 MessageHandler(TEXT, venta_monto),
             ],
             STOCK_BUSCAR: [
@@ -112,6 +124,7 @@ def main():
 
     app = Application.builder().token(TELEGRAM_TOKEN).build()
     app.add_handler(construir_conversacion())
+    app.add_error_handler(error_handler)
 
     logger.info("=" * 50)
     logger.info("  BARATELY Bot v2 - Iniciado correctamente")
