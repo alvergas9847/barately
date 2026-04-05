@@ -156,7 +156,7 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
     <div class="nav-logo">BARATELY</div>
     <div class="nav-sub">Manual de Usuario</div>
   </div>
-  <div class="nav-right">v1.0 · 2026</div>
+  <div class="nav-right">v1.2 · 2026</div>
 </div>
 
 <div class="layout">
@@ -179,6 +179,7 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
   <a class="sb-item" href="#ia" onclick="activar(this)"><span class="sb-icon">✦</span>IA & Alertas</a>
   <div class="sb-sec">Referencia</div>
   <a class="sb-item" href="#botones" onclick="activar(this)"><span class="sb-icon">🖱️</span>Guia de botones</a>
+  <a class="sb-item" href="#movil" onclick="activar(this)"><span class="sb-icon">📱</span>Uso desde movil</a>
   <a class="sb-item" href="#faq" onclick="activar(this)"><span class="sb-icon">❓</span>Preguntas frecuentes</a>
 </div>
 
@@ -201,6 +202,9 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
     <a class="indice-item" href="#finanzas"><span>💰</span>Finanzas</a>
     <a class="indice-item" href="#usuarios"><span>⚙️</span>Usuarios</a>
     <a class="indice-item" href="#ia"><span>✦</span>IA & Alertas</a>
+    <a class="indice-item" href="#movil"><span>📱</span>Uso desde movil</a>
+    <a class="indice-item" href="#botones"><span>🖱️</span>Guia de botones</a>
+    <a class="indice-item" href="#faq"><span>❓</span>Preguntas frecuentes</a>
   </div>
 </div>
 
@@ -382,7 +386,7 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
 
   <h3>Como registrar una venta</h3>
   <ol class="pasos">
-    <li><div><strong>Busca el producto</strong> — escribe el nombre o escanea el codigo de barras en el campo de busqueda. Tambien puedes usar la tecla F2 para enfocar rapidamente.</div></li>
+    <li><div><strong>Busca el producto</strong> — escribe el nombre o escanea el codigo de barras. En los resultados aparece la foto del producto (si tiene) para identificarlo mas rapido. Usa F2 en teclado para enfocar el buscador sin mouse.</div></li>
     <li><div><strong>Selecciona la talla y color</strong> — aparecen los botones de variantes disponibles. Los que dicen 0 uds estan agotados y no se pueden seleccionar.</div></li>
     <li><div><strong>El producto se agrega al carrito</strong> — puedes cambiar la cantidad con los botones + y -, o aplicar un descuento por producto escribiendo el porcentaje.</div></li>
     <li><div><strong>Busca al cliente</strong> (opcional) — escribe el nombre o telefono. Si tiene compras anteriores las veras automaticamente.</div></li>
@@ -390,6 +394,11 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
     <li><div><strong>Selecciona el metodo de pago</strong> — efectivo, tarjeta, transferencia o visalink. Puedes usar varios metodos en una sola venta.</div></li>
     <li><div><strong>Presiona COBRAR</strong> — aparece el recibo con el cambio si aplica. Puedes imprimirlo.</div></li>
   </ol>
+
+  <div class="tip">
+    <div class="tip-icon">📷</div>
+    <div class="tip-text"><strong>Fotos en ventas:</strong> Cuando buscas un producto, el sistema muestra su foto en miniatura en la lista de resultados y una vista mas grande al seleccionarlo. Esto ayuda a confirmar que es el producto correcto antes de cobrar.</div>
+  </div>
 
   <div class="tip">
     <div class="tip-icon">💡</div>
@@ -484,9 +493,15 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
     <li><div>Ve a la pestana <strong>Productos</strong> y presiona <strong>+ Nuevo producto</strong>.</div></li>
     <li><div>Llena el nombre, precio de venta, categoria y tipo de ropa. El precio de costo es opcional.</div></li>
     <li><div>Si viene de un proveedor, seleccionalo en el campo <strong>Proveedor</strong>. Puedes dejarlo en blanco.</div></li>
+    <li><div>En la seccion <strong>Foto del producto</strong> presiona el boton <strong>📷 Capturar / Subir foto</strong>. Desde el celular puedes tomar la foto directamente con la camara o elegirla de la galeria. Desde la computadora se abre el explorador de archivos.</div></li>
     <li><div>En la seccion de <strong>Variantes</strong> agrega cada combinacion de talla y color con su cantidad en stock.</div></li>
-    <li><div>Presiona <strong>Guardar producto</strong>.</div></li>
+    <li><div>Presiona <strong>Guardar producto</strong> — la foto se guarda automaticamente junto al producto.</div></li>
   </ol>
+
+  <div class="tip">
+    <div class="tip-icon">📷</div>
+    <div class="tip-text"><strong>Foto del producto:</strong> Si ya existe una foto, el boton cambia a <strong>Cambiar foto</strong> y aparece el boton <strong>Quitar</strong> para eliminarla. La foto se muestra en el catalogo de productos y en la pantalla de ventas al buscar el articulo.</div>
+  </div>
 
   <h3>Como registrar una entrada de mercaderia</h3>
   <ol class="pasos">
@@ -494,8 +509,22 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
     <li><div>Escribe el nombre del producto en el buscador y seleccionalo.</div></li>
     <li><div>Selecciona la <strong>variante</strong> (talla y color).</div></li>
     <li><div>Elige tipo <strong>Entrada</strong>, escribe la cantidad y el motivo.</div></li>
-    <li><div>Presiona <strong>Registrar</strong> — el stock se actualiza automaticamente.</div></li>
+    <li><div><strong>Lote de ingreso</strong> (opcional): selecciona un lote existente del listado o presiona <strong>+ Nuevo</strong> para crear uno con numero de lote, fecha y proveedor. Esto permite rastrear de que compra viene cada mercaderia.</div></li>
+    <li><div>Presiona <strong>Registrar</strong> — el stock se actualiza automaticamente y el lote queda vinculado al movimiento.</div></li>
   </ol>
+
+  <div class="tip">
+    <div class="tip-icon">🗂️</div>
+    <div class="tip-text"><strong>Lotes de inventario:</strong> Un lote es un grupo de productos que ingresaron juntos en una misma compra. Usar lotes te permite saber exactamente cuando llego cada mercaderia y de que proveedor. Aparecen en el historial de movimientos en la columna <strong>Lote</strong>. Solo se muestra el campo de lote cuando el tipo es <strong>Entrada</strong>.</div>
+  </div>
+
+  <h3>Tipos de movimiento</h3>
+  <div class="btns-guia">
+    <div class="btn-g btn-ok"><div class="ico">⬆️</div><div><div class="lbl">Entrada</div><div class="desc">Mercaderia que ingresa al inventario (compras, devoluciones de cliente)</div></div></div>
+    <div class="btn-g btn-del"><div class="ico">⬇️</div><div><div class="lbl">Salida</div><div class="desc">Mercaderia que sale sin ser una venta (merma, donacion, muestra)</div></div></div>
+    <div class="btn-g"><div class="ico">⚖️</div><div><div class="lbl">Ajuste</div><div class="desc">Correccion de inventario fisico vs sistema</div></div></div>
+    <div class="btn-g btn-ver"><div class="ico">↩️</div><div><div class="lbl">Devolucion</div><div class="desc">Producto devuelto por cliente que repone stock</div></div></div>
+  </div>
 </div>
 
 <!-- ═══ CLIENTES ═══ -->
@@ -674,6 +703,47 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
   </div>
 </div>
 
+<!-- ═══ MOVIL ═══ -->
+<div class="section" id="movil">
+  <div class="section-badge">📱 Movil</div>
+  <div class="section-title">Uso desde celular o tablet</div>
+  <div class="section-desc">El sistema esta disenado para funcionar igual de bien en celular que en computadora. Todas las pantallas se adaptan automaticamente.</div>
+
+  <h3>Como ingresar desde el celular por primera vez</h3>
+  <ol class="pasos">
+    <li><div>Abre <strong>Chrome</strong> (Android) o <strong>Safari</strong> (iPhone).</div></li>
+    <li><div>Escribe la direccion del sistema y presiona Entrar.</div></li>
+    <li><div>Ingresa tu <strong>usuario en mayusculas</strong> y tu <strong>PIN</strong> exactamente como te los dio el administrador.</div></li>
+    <li><div>Presiona <strong>Entrar</strong>. Cada celular necesita hacer login una vez — la sesion se guarda en ese navegador.</div></li>
+  </ol>
+
+  <div class="tip warn-tip">
+    <div class="tip-icon">⚠️</div>
+    <div class="tip-text"><strong>Si aparece "Usuario o PIN incorrecto" en el celular:</strong> Verifica que no haya espacios ni autocorrector cambiando las letras. El usuario debe ir en <strong>MAYUSCULAS</strong>. Si en la computadora funciona pero no en el celular, el administrador debe ejecutar el archivo <code style="background:var(--surface3);padding:2px 6px;border-radius:4px;font-family:'DM Mono',monospace;font-size:11px;">migracion_imagenes_lotes.sql</code> en Supabase para activar los permisos correctos.</div>
+  </div>
+
+  <h3>Instalar como aplicacion (PWA)</h3>
+  <ol class="pasos">
+    <li><div><strong>Android (Chrome):</strong> Entra al sistema, toca el menu de 3 puntos arriba a la derecha y selecciona <strong>"Agregar a pantalla de inicio"</strong>. Aparecera un icono de BARATELY como si fuera una app.</div></li>
+    <li><div><strong>iPhone (Safari):</strong> Entra al sistema, toca el boton de <strong>compartir</strong> (cuadrado con flecha hacia arriba) y selecciona <strong>"Agregar a pantalla de inicio"</strong>.</div></li>
+    <li><div>Al abrir desde el icono, el sistema se abre sin la barra del navegador, como una aplicacion normal.</div></li>
+  </ol>
+
+  <div class="tip ok-tip">
+    <div class="tip-icon">✅</div>
+    <div class="tip-text"><strong>Funciones optimizadas para movil:</strong> La camara para fotos de productos abre directamente al presionar el boton de captura. El menu lateral se oculta y se abre con el boton de hamburguesa. Las tablas se pueden desplazar horizontalmente con el dedo.</div>
+  </div>
+
+  <h3>Tomar foto de un producto desde el celular</h3>
+  <ol class="pasos">
+    <li><div>Ve a <strong>Inventario → Productos → editar o crear producto</strong>.</div></li>
+    <li><div>En la seccion <strong>Foto del producto</strong> presiona el boton <strong>📷 Capturar / Subir foto</strong>.</div></li>
+    <li><div>El celular te preguntara si quieres <strong>tomar una foto</strong> con la camara o <strong>elegir de la galeria</strong>.</div></li>
+    <li><div>Toma o selecciona la foto — aparece el preview inmediatamente.</div></li>
+    <li><div>Presiona <strong>Guardar producto</strong> para subirla. Necesitas conexion a internet para que se guarde.</div></li>
+  </ol>
+</div>
+
 <!-- ═══ FAQ ═══ -->
 <div class="section" id="faq">
   <div class="section-badge">❓ FAQ</div>
@@ -699,6 +769,18 @@ p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.7;}
 
   <h3>¿Las ventas anuladas afectan el inventario?</h3>
   <p>Actualmente anular una venta cambia su estado pero no repone automaticamente el stock. Para reponer el stock ve a Inventario → Movimientos → tipo Devolucion.</p>
+
+  <h3>¿Como subo la foto de un producto?</h3>
+  <p>Ve a Inventario → Productos → edita el producto o crea uno nuevo. En la seccion <strong>Foto del producto</strong> presiona el boton <strong>📷 Capturar / Subir foto</strong>. Desde el celular puedes tomar la foto con la camara directamente. Desde la computadora se abre el explorador de archivos. Guarda el producto y la foto quedara asociada.</p>
+
+  <h3>¿Para que sirven los lotes en los movimientos?</h3>
+  <p>Los lotes te permiten agrupar mercaderia que llego en la misma compra. Al registrar una entrada de tipo <strong>Entrada</strong> puedes asignar un numero de lote (ej: LOT-001) con fecha y proveedor. Asi puedes rastrear exactamente de que compra viene cada producto. Aparece en la columna <strong>Lote</strong> del historial de movimientos.</p>
+
+  <h3>¿Por que no puedo ingresar desde el celular aunque en la computadora si funciona?</h3>
+  <p>La computadora guarda la sesion del login anterior. En el celular, al intentar hacer login por primera vez, la base de datos necesita tener los permisos correctos activados. El administrador del sistema debe ejecutar el script SQL de migracion en Supabase. Luego el login funcionara en cualquier dispositivo.</p>
+
+  <h3>¿La foto del producto se ve cuando estoy cobrando?</h3>
+  <p>Si. Al buscar un producto en Nueva Venta, aparece la miniatura de la foto en la lista de resultados. Al seleccionar el producto, se muestra la foto mas grande encima de las variantes para confirmar que es el articulo correcto antes de agregar al carrito.</p>
 
   <div class="tip ok-tip" style="margin-top:28px;">
     <div class="tip-icon">📞</div>
