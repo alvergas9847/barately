@@ -2,7 +2,7 @@
 BARATELY Bot v2 — handlers/inventario.py
 Consulta de stock, vales y reportes.
 """
-from telegram import Update
+from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import ContextTypes
 from services import supabase_svc as db
 from services.mensajes import (
@@ -31,13 +31,26 @@ async def iniciar_stock(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     return STOCK_BUSCAR
 
 
+_KB_STOCK = ReplyKeyboardMarkup(
+    [["🔍 Buscar otro producto"], ["🔙 Volver al menú"]],
+    resize_keyboard=True
+)
+
+
 async def buscar_stock(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
     texto   = update.message.text.strip()
     usuario = usuario_actual(ctx)
 
-    if texto == "❌ Cancelar":
-        await update.message.reply_text("Cancelado.", reply_markup=teclado_menu(usuario["rol"]))
+    if texto in ("❌ Cancelar", "🔙 Volver al menú"):
+        await update.message.reply_text("De acuerdo.", reply_markup=teclado_menu(usuario["rol"]))
         return 1
+
+    if texto == "🔍 Buscar otro producto":
+        await update.message.reply_text(
+            "Escribe el nombre o código del producto:",
+            reply_markup=teclado_cancelar()
+        )
+        return STOCK_BUSCAR
 
     productos = db.buscar_producto(texto)
 
@@ -63,12 +76,8 @@ async def buscar_stock(update: Update, ctx: ContextTypes.DEFAULT_TYPE) -> int:
             msg += "  ⚠️ Sin stock disponible\n"
         msg += "\n"
 
-    await update.message.reply_text(
-        msg,
-        parse_mode="Markdown",
-        reply_markup=teclado_menu(usuario["rol"])
-    )
-    return 1
+    await update.message.reply_text(msg, parse_mode="Markdown", reply_markup=_KB_STOCK)
+    return STOCK_BUSCAR
 
 
 # ══════════════════════════════════════════════════════════════

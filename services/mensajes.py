@@ -123,20 +123,25 @@ def formato_mis_ventas(ventas: list) -> str:
 def formato_resumen_dia(data: list) -> str:
     if not data:
         return "📭 Sin ventas registradas hoy."
-    total_g = sum(float(r.get("total_vendido") or 0) for r in data)
-    num_g   = sum(int(r.get("num_ventas") or 0) for r in data)
-    msg     = f"📈 *Resumen del dia — {fecha_hoy()}*\n\n"
+    total_ventas = sum(float(r.get("total_vendido") or 0) for r in data)
+    total_vales  = sum(float(r.get("vales_del_dia") or 0) for r in data)
+    num_g        = sum(int(r.get("num_ventas") or 0) for r in data)
+    msg = f"📈 *Resumen del dia — {fecha_hoy()}*\n\n"
     for r in data:
-        tv = float(r.get("total_vendido") or 0)
-        if tv > 0:
+        tv   = float(r.get("total_vendido") or 0)
+        vale = float(r.get("vales_del_dia") or 0)
+        if tv > 0 or vale > 0:
             msg += f"👤 *{r.get('vendedor', '?')}*\n"
-            msg += f"   Ventas: {r.get('num_ventas', 0)} | {q(tv)}\n"
-            vale = float(r.get("vales_del_dia") or 0)
+            if tv > 0:
+                msg += f"   Ventas: {r.get('num_ventas', 0)} | {q(tv)}\n"
             if vale > 0:
-                msg += f"   Vale: {q(vale)}\n"
+                msg += f"   Vale aprobado: {q(vale)}\n"
             msg += "\n"
-    msg += f"─────────────────────\n"
-    msg += f"💰 *TOTAL: {q(total_g)}* | {num_g} transacciones"
+    msg += "─────────────────────\n"
+    msg += f"💰 *Ventas: {q(total_ventas)}* | {num_g} transacciones\n"
+    if total_vales > 0:
+        msg += f"💵 *Vales aprobados: {q(total_vales)}*\n"
+        msg += f"📊 *Neto del dia: {q(total_ventas - total_vales)}*"
     return msg
 
 

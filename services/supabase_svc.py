@@ -196,11 +196,14 @@ def registrar_venta(usuario_id: str, cliente_id,
 def ventas_del_dia(usuario_id: str) -> list:
     try:
         db = get_db()
-        hoy = datetime.now().date().isoformat()
+        hoy   = datetime.now().date().isoformat()
+        inicio = f"{hoy}T00:00:00"
+        fin    = f"{hoy}T23:59:59"
         res = db.table("ventas")\
             .select("id, total, fecha, turno, estado")\
             .eq("usuario_id", usuario_id)\
-            .gte("fecha", hoy)\
+            .gte("fecha", inicio)\
+            .lte("fecha", fin)\
             .eq("estado", "completada")\
             .order("fecha", desc=True)\
             .execute()
@@ -255,9 +258,56 @@ def vales_pendientes(usuario_id: str = None) -> list:
 
 def resumen_dia() -> list:
     try:
-        db = get_db()
-        res = db.table("vw_ventas_hoy").select("*").execute()
-        return res.data or []
+        db_client = get_db()
+        hoy    = datetime.now().date().isoformat()
+        inicio = f"{hoy}T00:00:00"
+        fin    = f"{hoy}T23:59:59"
+
+        # Ventas completadas hoy, agrupadas por vendedor
+        res = db_client.table("ventas")\
+            .select("id, total, usuario_id, turno, usuarios(nombre)")\
+            .gte("fecha", inicio)\
+            .lte("fecha", fin)\
+            .eq("estado", "completada")\
+            .execute()
+
+        resumen = {}
+        for v in (res.data or []):
+            uid    = v["usuario_id"]
+            nombre = (v.get("usuarios") or {}).get("nombre", "?")
+            if uid not in resumen:
+                resumen[uid] = {
+                    "vendedor":      nombre,
+                    "total_vendido": 0.0,
+                    "num_ventas":    0,
+                    "vales_del_dia": 0.0,
+                }
+            resumen[uid]["total_vendido"] += float(v.get("total") or 0)
+            resumen[uid]["num_ventas"]    += 1
+
+        # Vales aprobados hoy (ignorar si la tabla no existe)
+        try:
+            vales_res = db_client.table("vales")\
+                .select("usuario_id, monto, usuarios(nombre)")\
+                .gte("fecha", inicio)\
+                .lte("fecha", fin)\
+                .eq("estado", "aprobado")\
+                .execute()
+            for vale in (vales_res.data or []):
+                uid    = vale["usuario_id"]
+                nombre = (vale.get("usuarios") or {}).get("nombre", "?")
+                if uid not in resumen:
+                    resumen[uid] = {
+                        "vendedor":      nombre,
+                        "total_vendido": 0.0,
+                        "num_ventas":    0,
+                        "vales_del_dia": 0.0,
+                    }
+                resumen[uid]["vales_del_dia"] += float(vale.get("monto") or 0)
+        except Exception as ev:
+            logger.warning(f"resumen_dia (vales): {ev}")
+
+        return list(resumen.values())
     except Exception as e:
         logger.error(f"resumen_dia: {e}")
         return []
@@ -266,8 +316,10 @@ def resumen_dia() -> list:
 def alertas_pendientes(limite: int = 5) -> list:
     try:
         db = get_db()
-        res = db.table("vw_alertas_pendientes")\
-            .select("*")\
+        res = db.table("alertas_ia")\
+            .select("tipo, prioridad, titulo, mensaje")\
+            .eq("resuelta", False)\
+            .order("creado_en", desc=True)\
             .limit(limite)\
             .execute()
         return res.data or []
